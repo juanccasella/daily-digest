@@ -9,3 +9,4 @@ _local-only/
 *.pem
 credenciales*
 .claude/launch.json
+.pytest_tmp/
