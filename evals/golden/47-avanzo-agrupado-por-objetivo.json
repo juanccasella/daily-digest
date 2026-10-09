@@ -1,0 +1,11 @@
+{
+  "id": "avanzo-agrupado-por-objetivo",
+  "category": "regresion",
+  "description": "'Avanzó' se agrupa por objetivo según los vínculos validados; lo que no se vincula va a 'Otros movimientos'.",
+  "expect": {
+    "digest_contains": [
+      "**Reportes (goal:1)**",
+      "**Otros movimientos**"
+    ]
+  }
+}

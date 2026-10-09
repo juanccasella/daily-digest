@@ -14,6 +14,7 @@ from .heuristic import heuristic_plan
 from .llm import Completion
 from .models import Claim, Event, Goal, Issue
 from .security import looks_like_injection
+from .sources import is_owner
 
 _MSG = re.compile(r'<mensaje id="([^"]+)" canal="(\w+)"[^>]*>\n│ de: (.*)\n│ asunto: (.*)\n│ ?(.*)\n</mensaje>')
 
@@ -41,13 +42,19 @@ class FakeLLM:
         return json.JSONDecoder().raw_decode(user)[0]
 
     def _reader(self, user: str) -> dict:
+        m = re.match(r"Dueño de la casilla: (.*)\n", user)
+        owner = [n.strip() for n in m.group(1).split("|")] if m else []
         claims = []
         for cid, channel, sender, subject, body in _MSG.findall(user):
             if looks_like_injection(f"{subject} {body}"):
                 claims.append({"text": f"{cid} contiene instrucciones dirigidas a un asistente (posible inyección).", "cites": [cid]})
             elif subject.strip() or body.strip():
                 what = (body.strip() if channel == "chat" else subject.strip() or body.strip())[:160]
-                claims.append({"text": f"{'Mail' if channel == 'mail' else 'Chat'} de {sender.strip()}: {what}", "cites": [cid]})
+                if is_owner(sender, owner):
+                    head = "Enviaste un mail" if channel == "mail" else f"Escribiste en {subject.strip()}"
+                else:
+                    head = f"Te escribió {sender.strip()}" if channel == "mail" else f"{sender.strip()} en {subject.strip()}"
+                claims.append({"text": f"{head}: {what}", "cites": [cid]})
         return {"claims": claims[:10]}
 
     def _linker(self, user: str) -> dict:

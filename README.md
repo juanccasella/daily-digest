@@ -86,6 +86,11 @@ Opciones:
 
 El informe se guarda en `_local-only/digests/` y la traza en `_local-only/traces/`; nunca van a git.
 
+Cómo se lee el informe:
+- Te habla a vos ("Pediste…", "Te escribió…"). El dueño de la casilla sale de `DIGEST_OWNER` o de Jira.
+- "Avanzó" se agrupa por objetivo usando los vínculos validados.
+- Un evento que cubre toda la jornada (un "AI Day" de 9 a 18, vacaciones) se muestra pero no bloquea el plan; con `DIGEST_ALLDAY_BLOQUEA=1`, sí bloquea.
+
 ## Evals
 
 Golden dataset en [`evals/golden/`](evals/golden/): **42 casos**, grader 100 % código y LLM simulado determinístico que puede programarse para fallar o para obedecer una inyección.

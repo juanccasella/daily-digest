@@ -50,6 +50,17 @@ class Sources(Protocol):
     def mails(self, w: Window) -> list[Message]: ...
     def chats(self, w: Window) -> list[Message]: ...
     def chats_export(self, w: Window) -> tuple[list[Message], str]: ...
+    def owner(self) -> list[str]: ...
+
+
+def owner_from_env() -> list[str]:
+    """DIGEST_OWNER="Juan Cruz Casella|Juan Casella": names the mailbox owner appears with."""
+    return [n.strip() for n in os.getenv("DIGEST_OWNER", "").split("|") if n.strip()]
+
+
+def is_owner(name: str, owner: list[str]) -> bool:
+    n = (name or "").strip().lower()
+    return bool(n) and any(n == o.lower() or o.lower() in n for o in owner)
 
 
 # --- time helpers -------------------------------------------------------------------------
@@ -145,6 +156,9 @@ class StaticSources:
     def chats_export(self, w: Window) -> tuple[list[Message], str]:
         rows = self.data.get("chats_export", _fixture("chats.json"))
         return [parse_chat(d, w.start) for d in rows], "export de ejemplo (fixtures/chats.json)"
+
+    def owner(self) -> list[str]:
+        return list(self.data.get("owner", ["Ana Ejemplo"]))
 
 
 def fixture_issues() -> list[Issue]:
@@ -342,6 +356,13 @@ class RealSources:
 
     def chats(self, w: Window) -> list[Message]:
         return graph_chats(w) if self.m365 == "graph" else self._mcp.chats(w)
+
+    def owner(self) -> list[str]:
+        names = owner_from_env()
+        if names:
+            return names
+        me = _jira_get("/rest/api/3/myself", {})
+        return [n for n in (me.get("displayName"), me.get("emailAddress")) if n]
 
     def chats_export(self, w: Window) -> tuple[list[Message], str]:
         if CHAT_EXPORT.exists():

@@ -1,7 +1,7 @@
 """Markdown rendering. Every statement shows its citations as `[id]`."""
 
 from .report import Report
-from .scheduling import DEFAULT_BLOCK
+from .scheduling import DEFAULT_BLOCK, blocking
 from .security import sanitize
 
 LABELS = {"llm": "modelo", "llm-after-retry": "modelo (tras reintento)", "heuristic": "heurístico",
@@ -17,6 +17,28 @@ def _text(text: str) -> str:
     return sanitize(text, 400).replace("[", "(").replace("]", ")").replace("!(", "(")
 
 
+def goal_title(text: str) -> str:
+    head = text.split(":")[0].strip()
+    return sanitize(head if len(head) <= 45 else text, 45)
+
+
+def group_by_goal(r: Report) -> list[tuple[str, list]]:
+    """Deterministic grouping: a progress item goes under the first goal whose validated link cites
+    the same evidence. No extra model call; ungrouped items go last."""
+    groups: list[tuple[str, list]] = []
+    used: set[int] = set()
+    for g in r.goals:
+        evidence = {c for ln in r.goal_links if ln.goal == g.id for c in ln.cites}
+        claims = [c for i, c in enumerate(r.advanced) if i not in used and evidence & set(c.cites)]
+        used |= {i for i, c in enumerate(r.advanced) if c in claims}
+        if claims:
+            groups.append((f"{goal_title(g.text)} ({g.id})", claims))
+    rest = [c for i, c in enumerate(r.advanced) if i not in used]
+    if rest:
+        groups.append(("Otros movimientos" if groups else "", rest))
+    return groups
+
+
 def to_markdown(r: Report) -> str:
     lines = [f"# Digest del {r.day:%d/%m/%Y}", ""]
     if r.offline:
@@ -27,7 +49,12 @@ def to_markdown(r: Report) -> str:
         lines += ["## Avisos", ""] + [f"- ⚠️ {sanitize(w, 400)}" for w in r.warnings] + [""]
 
     lines += [f"## 1. Avanzó ({r.window.label()})", ""]
-    lines += [f"- {_text(c.text)} {_cites(c.cites)}" for c in r.advanced] or ["- (sin movimientos registrados en el período)"]
+    if not r.advanced:
+        lines.append("- (sin movimientos registrados en el período)")
+    for title, claims in group_by_goal(r):
+        if title:
+            lines += [f"**{title}**", ""]
+        lines += [f"- {_text(c.text)} {_cites(c.cites)}" for c in claims] + [""]
 
     lines += ["", "## 2. Ayudó a objetivos", ""]
     if not r.goals:
@@ -39,8 +66,13 @@ def to_markdown(r: Report) -> str:
 
     lines += ["", f"## 3. Sigue (plan de hoy {r.day:%d/%m})", ""]
     meetings = sorted(r.events_today, key=lambda e: e.start)
-    lines.append("**Reuniones:** " + (", ".join(f"{e.start:%H:%M}-{e.end:%H:%M} {sanitize(e.subject, 60)} `[{e.cite}]`"
-                                                  for e in meetings) or "sin reuniones"))
+    busy = {e.cite for e in blocking(meetings, r.day)}
+
+    def meeting(e) -> str:
+        when = "todo el día (no bloquea el plan)" if e.cite not in busy else f"{e.start:%H:%M}-{e.end:%H:%M}"
+        return f"{when} {sanitize(e.subject, 60)} `[{e.cite}]`"
+
+    lines.append("**Reuniones:** " + (", ".join(meeting(e) for e in meetings) or "sin reuniones"))
     lines.append("")
     by_key = {i.key: i for i in r.issues}
     if r.plan:

@@ -1,0 +1,16 @@
+{
+  "id": "evento-todo-el-dia-informativo",
+  "category": "bordes",
+  "description": "Uso real (09/10): un bloque de 09 a 18 h (p. ej. 'Flock IT AI DAY') se muestra como 'todo el día' y no bloquea el plan; las reuniones normales de ese día sí bloquean.",
+  "data": {
+    "events": [
+      {"subject": "Evento de todo el día", "start": "09:00", "end": "18:00"},
+      {"subject": "Kick off", "start": "09:15", "end": "09:45"},
+      {"subject": "Cierre", "start": "17:00", "end": "18:00"}
+    ]
+  },
+  "expect": {
+    "plan_min": 3,
+    "digest_contains": ["todo el día (no bloquea el plan) Evento de todo el día"]
+  }
+}

@@ -23,6 +23,7 @@ from .agents import link_goals, plan_day, read_untrusted
 from .llm import make_llm
 from .models import Claim, Event, Goal, GoalLink, Issue, JiraChange, Message, PlanItem
 from .report import Report, advanced_from_code, finalize
+from .scheduling import blocking
 from .security import looks_like_injection, sanitize
 from .sources import MissingConfig, SourceBlocked, StaticSources, fixture_data
 from .trace import NULL
@@ -47,6 +48,7 @@ class State(TypedDict, total=False):
     chats: list[Message]
     goals: list[Goal]
     goals_source: str
+    owner: list[str]
     advanced: list[Claim]
     reader_claims: list[Claim]
     links: list[GoalLink]
@@ -169,6 +171,13 @@ def fetch_chats(s, config):
         return {"chats": [], "warnings": [_degraded("chats", e)]}
 
 
+@_node("whoami")
+def whoami(s, config):
+    """Who owns the mailbox, so agents write in second person ("Pediste…") instead of about the user."""
+    names, warn = _safe("dueño de la casilla", lambda: _sources(s, config).owner(), [])
+    return {"owner": names, "warnings": [warn] if warn else []}
+
+
 @_node("load_goals")
 def load_goals(s, config):
     given = _cfg(config).get("goals")
@@ -215,7 +224,7 @@ def _agent_warning(name: str, res) -> list[str]:
 @_node("read_untrusted")
 def read_node(s, config):
     msgs = s.get("mails", []) + s.get("chats", [])
-    res = read_untrusted(_llm(s, config), _tracer(config), msgs, _window(s).label())
+    res = read_untrusted(_llm(s, config), _tracer(config), msgs, _window(s).label(), s.get("owner", []))
     return {"reader_claims": res.value, "provenance": {"reader": res.source}, "attempts": {"reader": res.attempts},
             "warnings": _agent_warning("lector de mails/chats", res)}
 
@@ -226,14 +235,15 @@ def link_node(s, config):
     # context so only model-produced, validated claims cross the quarantine boundary.
     reader_ok = s.get("provenance", {}).get("reader") in ("llm", "llm-after-retry")
     evidence = s.get("advanced", []) + (s.get("reader_claims", []) if reader_ok else [])
-    res = link_goals(_llm(s, config), _tracer(config), s.get("goals", []), evidence)
+    res = link_goals(_llm(s, config), _tracer(config), s.get("goals", []), evidence, s.get("owner", []))
     return {"links": res.value, "provenance": {"linker": res.source}, "attempts": {"linker": res.attempts},
             "warnings": _agent_warning("vinculador de objetivos", res)}
 
 
 @_node("plan")
 def plan_node(s, config):
-    res = plan_day(_llm(s, config), _tracer(config), s.get("issues", []), s.get("events_today", []), s["day"])
+    events = blocking(s.get("events_today", []), s["day"])  # all-day events are informative, not busy
+    res = plan_day(_llm(s, config), _tracer(config), s.get("issues", []), events, s["day"])
     return {"plan": res.value, "source": res.source, "provenance": {"planner": res.source},
             "attempts": {"planner": res.attempts}, "warnings": _agent_warning("planificador", res)}
 
@@ -249,7 +259,8 @@ def render(s, config):
 def build():
     g = StateGraph(State)
     fetchers = [("fetch_jira", fetch_jira), ("fetch_jira_changes", fetch_jira_changes), ("fetch_calendar", fetch_calendar),
-                ("fetch_mail", fetch_mail), ("fetch_chats", fetch_chats), ("load_goals", load_goals)]
+                ("fetch_mail", fetch_mail), ("fetch_chats", fetch_chats), ("load_goals", load_goals),
+                ("whoami", whoami)]
     for name, fn in fetchers + [("facts", facts), ("read_untrusted", read_node), ("link_goals", link_node),
                                 ("plan", plan_node), ("render", render)]:
         g.add_node(name, fn)

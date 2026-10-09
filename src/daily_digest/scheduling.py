@@ -32,6 +32,21 @@ def free_gaps(day: date, busy: list[tuple[datetime, datetime]]) -> list[tuple[da
     return [(s, e) for s, e in gaps if e - s >= timedelta(minutes=MIN_BLOCK)]
 
 
+def covers_workday(e: Event, day: date) -> bool:
+    """An event spanning the whole working window (e.g. "Flock IT AI DAY 09-18", vacations, home office)
+    is informative: it is shown, but does not block the plan. Set DIGEST_ALLDAY_BLOQUEA=1 to make it block."""
+    ws, we = window(day)
+    return e.start <= ws and e.end >= we
+
+
+def blocking(events: list[Event], day: date) -> list[Event]:
+    import os
+
+    if os.getenv("DIGEST_ALLDAY_BLOQUEA") == "1":
+        return list(events)
+    return [e for e in events if not covers_workday(e, day)]
+
+
 def busy_from(events: list[Event], plan: list[PlanItem] | None = None) -> list[tuple[datetime, datetime]]:
     busy = [(e.start, e.end) for e in events]
     busy += [(p.start, p.end) for p in plan or []]

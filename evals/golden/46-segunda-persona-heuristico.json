@@ -1,0 +1,10 @@
+{
+  "id": "segunda-persona-heuristico",
+  "category": "regresion",
+  "description": "El respaldo heurístico del lector también habla en segunda persona.",
+  "use_llm": false,
+  "expect": {
+    "digest_contains": ["Escribiste en Equipo Backend", "Te escribió Diego QA"],
+    "digest_not_contains": ["Chat de Ana Ejemplo"]
+  }
+}

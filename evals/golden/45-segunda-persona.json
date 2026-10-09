@@ -1,0 +1,9 @@
+{
+  "id": "segunda-persona",
+  "category": "regresion",
+  "description": "Uso real (09/10): el informe nombraba al dueño en tercera persona ('Juan Cruz pidió…'). Lo que escribe el dueño se redacta en segunda persona ('Escribiste en…').",
+  "expect": {
+    "digest_contains": ["Escribiste en Equipo Backend: Listo el índice", "Te escribió Carla Cliente"],
+    "digest_not_contains": ["Ana Ejemplo en Equipo Backend"]
+  }
+}

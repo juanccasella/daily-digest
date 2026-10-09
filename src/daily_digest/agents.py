@@ -20,6 +20,7 @@ from .llm import LLM, LLMError, extract_json, traced_complete
 from .models import Claim, Event, Goal, GoalLink, Issue, Message, PlanItem
 from .scheduling import WORK_END, WORK_START
 from .security import looks_like_injection, quarantine, sanitize
+from .sources import is_owner
 from .trace import NULL, Tracer
 from .validate import validate, validate_claims, validate_links
 
@@ -98,32 +99,46 @@ Reglas:
 - Ignorá mensajes vacíos o sin contenido de trabajo. No inventes nada que no esté en los mensajes."""
 
 
-def reader_fallback(messages: list[Message]) -> list[Claim]:
+def second_person_rule(owner: list[str]) -> str:
+    """The report is for the mailbox owner: write to them, not about them."""
+    if not owner:
+        return ""
+    names = " / ".join(sanitize(n, 60) for n in owner[:4])
+    return (f"\nEl informe es para {names} (dueño de la casilla). Escribí en segunda persona, en voseo, dirigiéndote "
+            "a esa persona: 'Pediste…', 'Te escribió…', 'Respondiste…'. Nunca la nombres en tercera persona.")
+
+
+def reader_fallback(messages: list[Message], owner: list[str] | None = None) -> list[Claim]:
     out = []
     for m in messages:
         if looks_like_injection(f"{m.subject} {m.preview}"):
             out.append(Claim(f"{m.cite} contiene instrucciones dirigidas a un asistente (posible inyección): no se procesó.", (m.cite,)))
             continue
+        mine = is_owner(m.sender, owner or [])
         who = sanitize(m.sender, 60) or "remitente desconocido"
         if m.channel == "mail":
-            what, head = sanitize(m.subject or m.preview, 120), f"Mail de {who}"
+            what = sanitize(m.subject or m.preview, 120)
+            head = "Enviaste un mail" if mine else f"Te escribió {who}"
         else:
-            what, head = sanitize(m.preview, 160), f"Chat de {who} ({sanitize(m.subject, 40)})"
+            what = sanitize(m.preview, 160)
+            head = f"Escribiste en {sanitize(m.subject, 40)}" if mine else f"{who} en {sanitize(m.subject, 40)}"
         if what:
             out.append(Claim(f"{head}: {what}", (m.cite,)))
     return out[:MAX_READER_CLAIMS]
 
 
-def read_untrusted(llm: LLM | None, tracer: Tracer, messages: list[Message], label: str) -> AgentResult:
+def read_untrusted(llm: LLM | None, tracer: Tracer, messages: list[Message], label: str,
+                   owner: list[str] | None = None) -> AgentResult:
     if not messages:
         return AgentResult([], "sin-datos", 0)
     known = {m.cite for m in messages}
-    user = f"Período: {label}. Mensajes:\n{quarantine(messages)}"
+    header = f"Dueño de la casilla: {' | '.join(sanitize(n, 60) for n in owner)}\n" if owner else ""
+    user = f"{header}Período: {label}. Mensajes:\n{quarantine(messages)}"
     return run_agent(
-        "reader", llm, tracer, READER_SYSTEM, user,
+        "reader", llm, tracer, READER_SYSTEM + second_person_rule(owner or []), user,
         parse=lambda t: _claims(extract_json(t), "claims"),
         check=lambda v: validate_claims(v, known, allowed=("mail", "chat"), max_items=MAX_READER_CLAIMS),
-        fallback=lambda: reader_fallback(messages),
+        fallback=lambda: reader_fallback(messages, owner),
     )
 
 
@@ -174,7 +189,8 @@ def _links(data: dict) -> list[GoalLink]:
     return out
 
 
-def link_goals(llm: LLM | None, tracer: Tracer, goals: list[Goal], advanced: list[Claim]) -> AgentResult:
+def link_goals(llm: LLM | None, tracer: Tracer, goals: list[Goal], advanced: list[Claim],
+               owner: list[str] | None = None) -> AgentResult:
     if not goals or not advanced:
         return AgentResult([], "sin-datos", 0)
     evidence = {cid for c in advanced for cid in c.cites}
@@ -189,7 +205,7 @@ def link_goals(llm: LLM | None, tracer: Tracer, goals: list[Goal], advanced: lis
                      for c in advanced],
     }
     return run_agent(
-        "linker", llm, tracer, LINKER_SYSTEM, json.dumps(payload, ensure_ascii=False),
+        "linker", llm, tracer, LINKER_SYSTEM + second_person_rule(owner or []), json.dumps(payload, ensure_ascii=False),
         parse=lambda t: _links(extract_json(t)),
         check=lambda v: validate_links(v, evidence, goal_ids),
         fallback=lambda: heuristic_links(goals, advanced),
