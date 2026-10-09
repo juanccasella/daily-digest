@@ -1,0 +1,34 @@
+[
+  {
+    "key": "DEMO-12",
+    "summary": "Corregir timeout en el endpoint de reportes",
+    "time": "11:20",
+    "kind": "transition",
+    "detail": "To Do → In Progress",
+    "author": "Ana Ejemplo"
+  },
+  {
+    "key": "DEMO-12",
+    "summary": "Corregir timeout en el endpoint de reportes",
+    "time": "17:45",
+    "kind": "comment",
+    "detail": "nuevo comentario",
+    "author": "Ana Ejemplo"
+  },
+  {
+    "key": "DEMO-19",
+    "summary": "Agregar índice a la tabla de eventos de reportes",
+    "time": "16:30",
+    "kind": "transition",
+    "detail": "In Review → Done",
+    "author": "Ana Ejemplo"
+  },
+  {
+    "key": "DEMO-31",
+    "summary": "Revisar PR de migración de base de datos",
+    "time": "12:10",
+    "kind": "comment",
+    "detail": "nuevo comentario",
+    "author": "Beto Ficticio"
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "evt-w-1",
+    "subject": "Daily del equipo",
+    "start": "09:30",
+    "end": "10:00"
+  },
+  {
+    "id": "evt-w-2",
+    "subject": "Revisión de arquitectura del módulo de alertas",
+    "start": "15:00",
+    "end": "16:00"
+  }
+]

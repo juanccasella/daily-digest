@@ -1,0 +1,6 @@
+[
+  {"subject": "Daily del equipo", "start": "09:30", "end": "10:00"},
+  {"subject": "Sync con cliente", "start": "11:00", "end": "12:00"},
+  {"subject": "Almuerzo", "start": "13:00", "end": "14:00"},
+  {"subject": "Planning semanal", "start": "16:00", "end": "17:00"}
+]

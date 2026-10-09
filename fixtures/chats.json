@@ -1,0 +1,16 @@
+[
+  {
+    "id": "1696-demo-101",
+    "from": "Beto Ficticio",
+    "chat": "Equipo Backend",
+    "time": "12:30",
+    "text": "Dejé comentarios en el PR de la migración (DEMO-31): falta el script de rollback antes de aprobar."
+  },
+  {
+    "id": "1696-demo-102",
+    "from": "Ana Ejemplo",
+    "chat": "Equipo Backend",
+    "time": "16:35",
+    "text": "Listo el índice de la tabla de eventos, ya está mergeado."
+  }
+]
