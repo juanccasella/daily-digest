@@ -28,12 +28,21 @@ CREATE TABLE IF NOT EXISTS planned (
     saved_at TEXT NOT NULL,
     PRIMARY KEY (day, key)
 );
+CREATE TABLE IF NOT EXISTS task_status (
+    key    TEXT PRIMARY KEY,  -- Jira key; latest status wins
+    status TEXT NOT NULL,     -- done | open
+    day    TEXT NOT NULL,     -- day it was marked
+    at     TEXT NOT NULL
+);
 """
+STATUSES = ("done", "open")
 
 
 class Memory(Protocol):
     def planned_in(self, w: Window) -> list[tuple[date, str]]: ...
     def save_plan(self, day: date, plan: list[PlanItem], source: str) -> None: ...
+    def done_keys(self) -> set[str]: ...
+    def set_status(self, day: date, key: str, status: str) -> None: ...
 
 
 class SqliteMemory:
@@ -57,6 +66,16 @@ class SqliteMemory:
                 "INSERT INTO planned VALUES (?, ?, ?, ?, ?, ?, ?)",
                 [(day.isoformat(), p.key, f"{p.start:%H:%M}", p.minutes, sanitize(p.reason, 300), source, now) for p in plan])
 
+    def done_keys(self) -> set[str]:
+        return {k for (k,) in self.conn.execute("SELECT key FROM task_status WHERE status = 'done'")}
+
+    def set_status(self, day: date, key: str, status: str) -> None:
+        if status not in STATUSES:
+            raise ValueError(f"estado inválido: {status}")
+        with self.conn:
+            self.conn.execute("INSERT OR REPLACE INTO task_status VALUES (?, ?, ?, ?)",
+                              (key, status, day.isoformat(), datetime.now().isoformat(timespec="seconds")))
+
 
 class StaticMemory:
     """Fixture/eval memory: `[{"key": "DEMO-08"}]` means "planned for the window start"."""
@@ -66,15 +85,22 @@ class StaticMemory:
         self.saved: list[tuple[date, list[PlanItem], str]] = []
 
     def planned_in(self, w: Window) -> list[tuple[date, str]]:
-        return [(date.fromisoformat(r["day"]) if r.get("day") else w.start, r["key"]) for r in self.rows]
+        return [(date.fromisoformat(r["day"]) if r.get("day") else w.start, r["key"]) for r in self.rows if "status" not in r]
 
     def save_plan(self, day: date, plan: list[PlanItem], source: str) -> None:
         self.saved.append((day, plan, source))
 
+    def done_keys(self) -> set[str]:
+        return {r["key"] for r in self.rows if r.get("status") == "done"}
 
-def carried_over(planned: list[tuple[date, str]], issues: list[Issue], changes: list[JiraChange]) -> list[Claim]:
-    """Planned in the window, still open, and nothing moved in Jira → carried over to today."""
-    open_ = {i.key: i for i in issues}
+    def set_status(self, day: date, key: str, status: str) -> None:
+        self.rows = [r for r in self.rows if not (r["key"] == key and "status" in r)] + [{"key": key, "status": status}]
+
+
+def carried_over(planned: list[tuple[date, str]], issues: list[Issue], changes: list[JiraChange],
+                 done: set[str] | None = None) -> list[Claim]:
+    """Planned in the window, still open, nothing moved in Jira and not marked done → carried over."""
+    open_ = {i.key: i for i in issues if i.key not in (done or set())}
     moved = {c.key for c in changes}
     out, seen = [], set()
     for day, key in planned:

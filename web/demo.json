@@ -1,0 +1,312 @@
+{
+ "day": "2026-10-09",
+ "window": "08/10/2026",
+ "offline": true,
+ "errors": [],
+ "warnings": [
+  "seguridad: posible inyección de prompt en mail:e5c4b542 (de Soporte IT). Se trató como dato y no se obedeció."
+ ],
+ "provenance": {
+  "planner": "heuristic",
+  "reader": "heuristic",
+  "linker": "heuristic"
+ },
+ "goals": [
+  {
+   "id": "goal:1",
+   "title": "Reportes",
+   "text": "Reportes: estabilizar el módulo de reportes, sin timeouts y con tiempos de respuesta aceptables para el cliente.",
+   "links": [
+    {
+     "text": "Avance relacionado (reportes): 2 movimiento(s).",
+     "cites": [
+      "jira:DEMO-12",
+      "jira:DEMO-19"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "goal:2",
+   "title": "Staging",
+   "text": "Staging: mantener el ambiente disponible para que QA pueda hacer regresión.",
+   "links": []
+  },
+  {
+   "id": "goal:3",
+   "title": "Migración",
+   "text": "Migración: cerrar la migración de base de datos con revisión y rollback documentado.",
+   "links": [
+    {
+     "text": "Avance relacionado (migracion): 1 movimiento(s).",
+     "cites": [
+      "jira:DEMO-31"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "goal:4",
+   "title": "Alertas",
+   "text": "Alertas: diseñar la arquitectura del módulo de alertas.",
+   "links": [
+    {
+     "text": "Avance relacionado (alertas, arquitectura): 1 movimiento(s).",
+     "cites": [
+      "cal:c611b874"
+     ]
+    }
+   ]
+  }
+ ],
+ "progress": [
+  {
+   "title": "Reportes (goal:1)",
+   "items": [
+    {
+     "text": "DEMO-12 «Corregir timeout en el endpoint de reportes»: pasó To Do → In Progress, 1 comentario(s) nuevo(s).",
+     "cites": [
+      "jira:DEMO-12"
+     ]
+    },
+    {
+     "text": "DEMO-19 «Agregar índice a la tabla de eventos de reportes»: pasó In Review → Done.",
+     "cites": [
+      "jira:DEMO-19"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Migración (goal:3)",
+   "items": [
+    {
+     "text": "DEMO-31 «Revisar PR de migración de base de datos»: 1 comentario(s) nuevo(s).",
+     "cites": [
+      "jira:DEMO-31"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Alertas (goal:4)",
+   "items": [
+    {
+     "text": "Reunión «Revisión de arquitectura del módulo de alertas» (08/10 15:00-16:00).",
+     "cites": [
+      "cal:c611b874"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Otros movimientos",
+   "items": [
+    {
+     "text": "Reunión «Daily del equipo» (08/10 09:30-10:00).",
+     "cites": [
+      "cal:80115a3a"
+     ]
+    },
+    {
+     "text": "Te escribió Carla Cliente (ficticia): Re: timeout en reportes",
+     "cites": [
+      "mail:1c5bf8e4"
+     ]
+    },
+    {
+     "text": "Te escribió Diego QA (ficticio): Staging caído para pruebas de QA",
+     "cites": [
+      "mail:c4d044f5"
+     ]
+    },
+    {
+     "text": "mail:e5c4b542 contiene instrucciones dirigidas a un asistente (posible inyección): no se procesó.",
+     "cites": [
+      "mail:e5c4b542"
+     ]
+    },
+    {
+     "text": "Beto Ficticio en Equipo Backend: Dejé comentarios en el PR de la migración (DEMO-31): falta el script de rollback antes de aprobar.",
+     "cites": [
+      "chat:2c07d9bf"
+     ]
+    },
+    {
+     "text": "Escribiste en Equipo Backend: Listo el índice de la tabla de eventos, ya está mergeado.",
+     "cites": [
+      "chat:44c1bea6"
+     ]
+    }
+   ]
+  }
+ ],
+ "carried": [
+  {
+   "text": "DEMO-08 «Documentar flujo de despliegue»: lo planificaste para el 08/10 y no tuvo movimiento en Jira.",
+   "cites": [
+    "jira:DEMO-08"
+   ]
+  }
+ ],
+ "meetings": [
+  {
+   "cite": "cal:19716d77",
+   "subject": "Daily del equipo",
+   "start": "09:30",
+   "end": "10:00",
+   "all_day": false
+  },
+  {
+   "cite": "cal:74704a8e",
+   "subject": "Sync con cliente",
+   "start": "11:00",
+   "end": "12:00",
+   "all_day": false
+  },
+  {
+   "cite": "cal:5ea8baff",
+   "subject": "Almuerzo",
+   "start": "13:00",
+   "end": "14:00",
+   "all_day": false
+  },
+  {
+   "cite": "cal:9e1681d2",
+   "subject": "Planning semanal",
+   "start": "16:00",
+   "end": "17:00",
+   "all_day": false
+  }
+ ],
+ "tasks": [
+  {
+   "key": "DEMO-12",
+   "cite": "jira:DEMO-12",
+   "summary": "Corregir timeout en el endpoint de reportes",
+   "status": "In Progress",
+   "priority": "Highest",
+   "due": "2026-10-09",
+   "updated": "2026-10-08",
+   "url": "",
+   "done": false,
+   "carried": false,
+   "planned": {
+    "start": "10:00",
+    "end": "11:00",
+    "reason": "prioridad Highest, vence 09/10, estado In Progress"
+   },
+   "related": [
+    {
+     "text": "DEMO-12 «Corregir timeout en el endpoint de reportes»: pasó To Do → In Progress, 1 comentario(s) nuevo(s).",
+     "cites": [
+      "jira:DEMO-12"
+     ]
+    }
+   ],
+   "goals": [
+    "goal:1"
+   ]
+  },
+  {
+   "key": "DEMO-08",
+   "cite": "jira:DEMO-08",
+   "summary": "Documentar flujo de despliegue",
+   "status": "To Do",
+   "priority": "Medium",
+   "due": "2026-10-16",
+   "updated": "2026-09-20",
+   "url": "",
+   "done": false,
+   "carried": true,
+   "planned": {
+    "start": "12:00",
+    "end": "13:00",
+    "reason": "arrastrado (planificado antes, sin movimiento), prioridad Medium, vence 16/10, estado To Do"
+   },
+   "related": [],
+   "goals": []
+  },
+  {
+   "key": "DEMO-44",
+   "cite": "jira:DEMO-44",
+   "summary": "Armar propuesta de arquitectura para el módulo de alertas",
+   "status": "To Do",
+   "priority": "High",
+   "due": "2026-10-12",
+   "updated": "2026-10-02",
+   "url": "",
+   "done": false,
+   "carried": false,
+   "planned": {
+    "start": "14:00",
+    "end": "15:00",
+    "reason": "prioridad High, vence 12/10, estado To Do"
+   },
+   "related": [],
+   "goals": []
+  },
+  {
+   "key": "DEMO-31",
+   "cite": "jira:DEMO-31",
+   "summary": "Revisar PR de migración de base de datos",
+   "status": "In Review",
+   "priority": "High",
+   "due": null,
+   "updated": "2026-10-07",
+   "url": "",
+   "done": false,
+   "carried": false,
+   "planned": {
+    "start": "15:00",
+    "end": "16:00",
+    "reason": "prioridad High, estado In Review"
+   },
+   "related": [
+    {
+     "text": "DEMO-31 «Revisar PR de migración de base de datos»: 1 comentario(s) nuevo(s).",
+     "cites": [
+      "jira:DEMO-31"
+     ]
+    }
+   ],
+   "goals": [
+    "goal:3"
+   ]
+  },
+  {
+   "key": "DEMO-27",
+   "cite": "jira:DEMO-27",
+   "summary": "Responder consultas del equipo de QA sobre el ambiente de staging",
+   "status": "In Progress",
+   "priority": "Medium",
+   "due": null,
+   "updated": "2026-10-08",
+   "url": "",
+   "done": false,
+   "carried": false,
+   "planned": {
+    "start": "17:00",
+    "end": "18:00",
+    "reason": "prioridad Medium, estado In Progress"
+   },
+   "related": [],
+   "goals": []
+  },
+  {
+   "key": "DEMO-02",
+   "cite": "jira:DEMO-02",
+   "summary": "Limpiar flags obsoletos en configuración",
+   "status": "To Do",
+   "priority": "Low",
+   "due": null,
+   "updated": "2026-08-30",
+   "url": "",
+   "done": false,
+   "carried": false,
+   "planned": null,
+   "related": [],
+   "goals": []
+  }
+ ]
+}

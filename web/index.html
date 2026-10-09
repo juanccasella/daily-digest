@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="digest-token" content="__DIGEST_TOKEN__">
+<title>daily-digest · planner</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --line:#dde1e6; --muted:#5f6b7a; --accent:#2563eb; --done:#16a34a; --warn:#b45309; --carried:#7c3aed; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--bg); color:#1f2937; }
+  header { display:flex; flex-wrap:wrap; gap:12px; align-items:center; padding:12px 16px; background:var(--card); border-bottom:1px solid var(--line); }
+  header h1 { font-size:18px; margin:0; } .badge { font-size:12px; padding:2px 8px; border-radius:99px; border:1px solid var(--line); color:var(--muted); }
+  .badge.demo { color:var(--warn); border-color:var(--warn); } header .actions { margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
+  button { font:inherit; padding:6px 10px; border:1px solid var(--line); background:var(--card); border-radius:6px; cursor:pointer; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; } button:disabled { opacity:.5; cursor:wait; }
+  main { display:grid; grid-template-columns: 300px 1fr 360px; gap:16px; padding:16px; align-items:start; }
+  @media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
+  section.card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px; }
+  h2 { font-size:14px; margin:0 0 8px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  h3 { font-size:13px; margin:12px 0 6px; }
+  .timeline { position:relative; height:540px; border-left:1px solid var(--line); margin-left:40px; }
+  .hour { position:absolute; left:-40px; width:calc(100% + 40px); border-top:1px dashed var(--line); font-size:11px; color:var(--muted); }
+  .slot { position:absolute; left:4px; right:4px; border-radius:6px; padding:2px 6px; font-size:12px; overflow:hidden; cursor:default; }
+  .slot.meeting { background:#e5e7eb; } .slot.task { background:#dbeafe; border-left:3px solid var(--accent); cursor:pointer; }
+  .slot.task.done { background:#dcfce7; border-left-color:var(--done); text-decoration:line-through; }
+  .allday { font-size:12px; background:#fef3c7; border-radius:6px; padding:4px 8px; margin-bottom:6px; }
+  ul.tasks { list-style:none; margin:0; padding:0; } ul.tasks li { padding:8px; border:1px solid var(--line); border-radius:6px; margin-bottom:6px; cursor:pointer; }
+  ul.tasks li:hover, ul.tasks li.sel { border-color:var(--accent); } ul.tasks li.done { opacity:.6; text-decoration:line-through; }
+  .meta { color:var(--muted); font-size:12px; } .tag { font-size:11px; padding:1px 6px; border-radius:4px; margin-right:4px; background:#eef2ff; }
+  .tag.carried { background:#ede9fe; color:var(--carried); } .tag.done { background:#dcfce7; color:var(--done); }
+  .cite { font-family:ui-monospace, monospace; font-size:11px; color:var(--muted); margin-left:4px; }
+  .warn { color:var(--warn); } .empty { color:var(--muted); font-style:italic; }
+  #detail .row { margin:6px 0; } #toast { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:#111827; color:#fff; padding:8px 14px; border-radius:6px; display:none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>daily-digest</h1>
+  <span id="when" class="meta"></span>
+  <span id="mode" class="badge"></span>
+  <div class="actions">
+    <button id="btnDemo" title="Datos ficticios, sin modelo, instantáneo">Generar demo</button>
+    <button id="btnReal" title="Lee Jira y Microsoft 365 (1-2 min)">Actualizar con mis datos</button>
+    <button id="btnRealLLM" class="primary" title="Lee tus fuentes y usa el modelo (cupo del plan)">Actualizar con modelo</button>
+  </div>
+</header>
+<main>
+  <section class="card">
+    <h2>Calendario de hoy</h2>
+    <div id="allday"></div>
+    <div id="timeline" class="timeline"></div>
+  </section>
+  <div>
+    <section class="card"><h2>Tareas</h2><div id="tasks"></div></section>
+    <section class="card" style="margin-top:16px"><h2>Avanzó</h2><div id="progress"></div></section>
+    <section class="card" style="margin-top:16px"><h2>Ayudó a objetivos</h2><div id="goals"></div></section>
+  </div>
+  <div>
+    <section class="card" id="detail"><h2>Detalle</h2><p class="empty">Elegí una tarea para ver su detalle.</p></section>
+    <section class="card" style="margin-top:16px"><h2>Avisos</h2><div id="warnings"></div></section>
+  </div>
+</main>
+<div id="toast"></div>
+<script>
+"use strict";
+// All third-party text is rendered with textContent (never innerHTML): mails and chats are untrusted.
+const TOKEN = document.querySelector('meta[name="digest-token"]').content;
+const LOCAL = !TOKEN.startsWith("__");          // served by daily-digest-web (real data) vs static demo (Vercel)
+const DAY_START = 9 * 60, DAY_END = 18 * 60, PX_PER_MIN = 540 / (DAY_END - DAY_START);
+let report = null, selected = null;
+
+const el = (tag, props = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) { if (k === "class") n.className = v; else if (k === "text") n.textContent = v; else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v); }
+  for (const k of kids) n.append(k);
+  return n;
+};
+const mins = hm => { const [h, m] = hm.split(":").map(Number); return h * 60 + m; };
+const cites = list => el("span", { class: "cite", text: list.map(c => `[${c}]`).join(" ") });
+const toast = msg => { const t = document.getElementById("toast"); t.textContent = msg; t.style.display = "block"; setTimeout(() => t.style.display = "none", 2500); };
+
+async function api(path, body) {
+  const r = await fetch(path, body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json", "X-Digest-Token": TOKEN }, body: JSON.stringify(body) });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || r.status);
+  return data;
+}
+
+async function load() {
+  try {
+    report = LOCAL ? await api("/api/report") : await (await fetch("demo.json")).json();
+  } catch (e) {
+    try { report = await api("/api/report?demo=1"); } catch { report = null; }
+  }
+  if (!LOCAL && report) {  // static demo: interactions live in this browser only
+    const saved = JSON.parse(localStorage.getItem("digest-demo-done") || "{}");
+    for (const t of report.tasks) if (t.key in saved) t.done = saved[t.key];
+  }
+  render();
+}
+
+function render() {
+  const has = !!report;
+  document.getElementById("when").textContent = has ? `Plan del ${report.day} · período analizado: ${report.window}` : "Sin informe todavía: generá la demo o actualizá con tus datos.";
+  const mode = document.getElementById("mode");
+  mode.textContent = !has ? "" : report.offline ? "DATOS DE EJEMPLO (ficticios)" : "datos reales (local)";
+  mode.className = "badge" + (has && report.offline ? " demo" : "");
+  for (const id of ["btnReal", "btnRealLLM"]) document.getElementById(id).hidden = !LOCAL;
+  document.getElementById("btnDemo").hidden = !LOCAL;
+  if (!has) return;
+  renderCalendar(); renderTasks(); renderProgress(); renderGoals(); renderWarnings(); renderDetail();
+}
+
+function renderCalendar() {
+  const tl = document.getElementById("timeline"), ad = document.getElementById("allday");
+  tl.replaceChildren(); ad.replaceChildren();
+  for (let h = 9; h <= 18; h++) tl.append(el("div", { class: "hour", style: `top:${(h * 60 - DAY_START) * PX_PER_MIN}px`, text: `${h}:00` }));
+  const place = (start, end) => `top:${(Math.max(mins(start), DAY_START) - DAY_START) * PX_PER_MIN}px;height:${Math.max((Math.min(mins(end), DAY_END) - Math.max(mins(start), DAY_START)) * PX_PER_MIN, 18)}px`;
+  for (const m of report.meetings) {
+    if (m.all_day) { ad.append(el("div", { class: "allday", text: `Todo el día: ${m.subject}` })); continue; }
+    if (mins(m.end) <= DAY_START || mins(m.start) >= DAY_END) continue;
+    tl.append(el("div", { class: "slot meeting", style: place(m.start, m.end), title: m.subject, text: `${m.start} ${m.subject}` }));
+  }
+  for (const t of report.tasks.filter(t => t.planned)) {
+    tl.append(el("div", { class: "slot task" + (t.done ? " done" : ""), style: place(t.planned.start, t.planned.end), text: `${t.planned.start} ${t.key} ${t.summary}`, onclick: () => select(t.key) }));
+  }
+}
+
+function renderTasks() {
+  const box = document.getElementById("tasks"); box.replaceChildren();
+  const groups = [
+    ["Arrastrado (planificado antes y sin movimiento)", t => !t.done && t.carried],
+    ["Plan de hoy", t => !t.done && t.planned && !t.carried],
+    ["Backlog sin bloque hoy", t => !t.done && !t.planned && !t.carried],
+    ["Hechas", t => t.done],
+  ];
+  for (const [title, f] of groups) {
+    const list = report.tasks.filter(f);
+    if (!list.length) continue;
+    const ul = el("ul", { class: "tasks" });
+    for (const t of list) {
+      const li = el("li", { class: (t.done ? "done " : "") + (t.key === selected ? "sel" : ""), onclick: () => select(t.key) },
+        el("div", {}, el("strong", { text: t.key }), document.createTextNode(" " + t.summary)),
+        el("div", { class: "meta" },
+          ...(t.carried ? [el("span", { class: "tag carried", text: "arrastrado" })] : []),
+          ...(t.done ? [el("span", { class: "tag done", text: "hecha" })] : []),
+          document.createTextNode(`${t.planned ? t.planned.start + "-" + t.planned.end + " · " : ""}${t.priority} · ${t.status}${t.due ? " · vence " + t.due : ""}`)));
+      ul.append(li);
+    }
+    box.append(el("h3", { text: `${title} (${list.length})` }), ul);
+  }
+  if (!report.tasks.length) box.append(el("p", { class: "empty", text: "Sin tickets abiertos." }));
+}
+
+function renderProgress() {
+  const box = document.getElementById("progress"); box.replaceChildren();
+  if (!report.progress.length) box.append(el("p", { class: "empty", text: "Sin movimientos registrados en el período." }));
+  for (const g of report.progress) {
+    if (g.title) box.append(el("h3", { text: g.title }));
+    const ul = el("ul"); for (const i of g.items) ul.append(el("li", {}, document.createTextNode(i.text), cites(i.cites)));
+    box.append(ul);
+  }
+}
+
+function renderGoals() {
+  const box = document.getElementById("goals"); box.replaceChildren();
+  if (!report.goals.length) box.append(el("p", { class: "empty", text: "Sin objetivos cargados." }));
+  for (const g of report.goals) {
+    box.append(el("h3", { text: `${g.id} · ${g.title}` }));
+    if (!g.links.length) { box.append(el("p", { class: "empty", text: "Sin avance registrado en el período." })); continue; }
+    const ul = el("ul"); for (const l of g.links) ul.append(el("li", {}, document.createTextNode(l.text), cites(l.cites)));
+    box.append(ul);
+  }
+}
+
+function renderWarnings() {
+  const box = document.getElementById("warnings"); box.replaceChildren();
+  const all = [...report.warnings, ...report.errors.map(e => "error de validación: " + e)];
+  if (!all.length) box.append(el("p", { class: "empty", text: "Sin avisos." }));
+  for (const w of all) box.append(el("p", { class: "warn", text: "⚠ " + w }));
+  const prov = Object.entries(report.provenance).map(([k, v]) => `${k}: ${v}`).join(" · ");
+  if (prov) box.append(el("p", { class: "meta", text: "Generado por — " + prov }));
+}
+
+function renderDetail() {
+  const box = document.getElementById("detail"); box.replaceChildren(el("h2", { text: "Detalle" }));
+  const t = report.tasks.find(x => x.key === selected);
+  if (!t) { box.append(el("p", { class: "empty", text: "Elegí una tarea para ver su detalle." })); return; }
+  const row = (label, value) => el("div", { class: "row" }, el("strong", { text: label + ": " }), document.createTextNode(value));
+  box.append(el("h3", { text: `${t.key} · ${t.summary}` }),
+    row("Estado en Jira", t.status), row("Prioridad", t.priority), row("Vence", t.due || "—"), row("Última actualización", t.updated),
+    row("Bloque de hoy", t.planned ? `${t.planned.start}-${t.planned.end}` : "sin bloque"),
+    ...(t.planned ? [row("Por qué", t.planned.reason)] : []),
+    ...(t.carried ? [row("Arrastrada", "estaba planificada y no tuvo movimiento en Jira")] : []),
+    ...(t.goals.length ? [row("Aporta a", t.goals.join(", "))] : []));
+  if (t.related.length) {
+    box.append(el("h3", { text: "Qué se movió en el período" }));
+    const ul = el("ul"); for (const i of t.related) ul.append(el("li", {}, document.createTextNode(i.text), cites(i.cites)));
+    box.append(ul);
+  }
+  const actions = el("div", { class: "row" },
+    el("button", { class: "primary", text: t.done ? "Reabrir" : "Marcar como hecha", onclick: () => setStatus(t, t.done ? "open" : "done") }));
+  if (/^https:\/\//.test(t.url)) actions.append(document.createTextNode(" "), el("a", { href: t.url, target: "_blank", rel: "noopener noreferrer", text: "Abrir en Jira ↗" }));
+  box.append(actions, el("p", { class: "meta", text: "Marcarla como hecha la saca del plan y del arrastre de mañana. El ticket en Jira lo movés vos: el digest nunca escribe en tus sistemas." }), cites([t.cite]));
+}
+
+function select(key) { selected = key; renderTasks(); renderDetail(); }
+
+async function setStatus(t, status) {
+  try {
+    if (LOCAL) {
+      const r = await api(`/api/tasks/${encodeURIComponent(t.key)}/status`, { status, demo: report.offline });
+      Object.assign(t, r.task);
+    } else {
+      t.done = status === "done";
+      const saved = JSON.parse(localStorage.getItem("digest-demo-done") || "{}"); saved[t.key] = t.done;
+      localStorage.setItem("digest-demo-done", JSON.stringify(saved));
+    }
+    toast(t.done ? `${t.key} marcada como hecha` : `${t.key} reabierta`);
+    render();
+  } catch (e) { toast("No se pudo guardar: " + e.message); }
+}
+
+async function regenerate(real, useModel, btn) {
+  if (real && !confirm(useModel ? "Lee Jira y Microsoft 365 y usa el modelo (1-2 min, cupo del plan). ¿Seguimos?" : "Lee Jira y Microsoft 365 (1-2 min). ¿Seguimos?")) return;
+  document.querySelectorAll("header button").forEach(b => b.disabled = true);
+  const old = btn.textContent; btn.textContent = "Generando…";
+  try { report = await api("/api/run", { real, use_model: useModel }); selected = null; render(); toast("Informe actualizado"); }
+  catch (e) { toast("Falló: " + e.message); }
+  finally { btn.textContent = old; document.querySelectorAll("header button").forEach(b => b.disabled = false); }
+}
+document.getElementById("btnDemo").onclick = e => regenerate(false, false, e.target);
+document.getElementById("btnReal").onclick = e => regenerate(true, false, e.target);
+document.getElementById("btnRealLLM").onclick = e => regenerate(true, true, e.target);
+load();
+</script>
+</body>
+</html>

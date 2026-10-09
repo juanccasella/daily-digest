@@ -27,6 +27,7 @@ class Report:
     known_ids: set[str]
     goals_source: str = ""
     carried: list[Claim] = field(default_factory=list)
+    done: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
 
     @property
@@ -91,6 +92,7 @@ def finalize(s: dict, window: Window) -> Report:
         goals=goals, plan=kept_plan, issues=s.get("issues", []), events_today=s.get("events_today", []),
         warnings=warnings, provenance=dict(s.get("provenance", {})), attempts=dict(s.get("attempts", {})),
         known_ids=known, goals_source=s.get("goals_source", ""), carried=kept_carried,
+        done=list(s.get("done", [])),
     )
     from .validate import validate_report
 

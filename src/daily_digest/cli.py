@@ -1,4 +1,5 @@
 import argparse
+import json
 import sys
 from dataclasses import dataclass
 from datetime import date
@@ -10,6 +11,7 @@ from . import trace
 from .graph import build, initial_state
 from .llm import make_llm
 from .memory import SqliteMemory
+from .webdata import report_json
 from .window import resolve
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -57,6 +59,8 @@ def run(day: date, since: date | None = None, until: date | None = None, offline
     DIGESTS.mkdir(parents=True, exist_ok=True)
     digest_path = DIGESTS / f"{day}{'-demo' if offline else ''}.md"  # a demo never overwrites a real digest
     digest_path.write_text(out["digest"], encoding="utf-8")
+    digest_path.with_suffix(".json").write_text(json.dumps(report_json(out["report"]), ensure_ascii=False, indent=1),
+                                                encoding="utf-8")  # what the web planner reads
     return RunResult(out, digest_path, trace_path, tracer.totals())
 
 

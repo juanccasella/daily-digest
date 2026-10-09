@@ -51,6 +51,7 @@ class State(TypedDict, total=False):
     goals_source: str
     owner: list[str]
     planned: list  # (date, key) planned in the window, from memory
+    done: list[str]  # keys marked as done in the UI
     carried: list[Claim]
     advanced: list[Claim]
     reader_claims: list[Claim]
@@ -187,8 +188,10 @@ def fetch_chats(s, config):
 
 @_node("load_memory")
 def load_memory(s, config):
-    planned, warn = _safe("memoria", lambda: _memory(s, config).planned_in(_window(s)), [])
-    return {"planned": planned, "warnings": [warn] if warn else []}
+    mem = _memory(s, config)
+    planned, warn = _safe("memoria", lambda: mem.planned_in(_window(s)), [])
+    done, warn2 = _safe("memoria (tareas hechas)", lambda: mem.done_keys(), set())
+    return {"planned": planned, "done": sorted(done), "warnings": [w for w in (warn, warn2) if w]}
 
 
 @_node("whoami")
@@ -229,7 +232,7 @@ def facts(s, config):
         if looks_like_injection(e.subject):
             warns.append(f"seguridad: posible inyección de prompt en la reunión {e.cite}. Se trató como dato.")
     return {"advanced": advanced_from_code(s.get("changes", []), s.get("events_window", [])),
-            "carried": carried_over(s.get("planned", []), s.get("issues", []), s.get("changes", [])),
+            "carried": carried_over(s.get("planned", []), s.get("issues", []), s.get("changes", []), set(s.get("done", []))),
             "warnings": warns}
 
 
@@ -266,7 +269,9 @@ def link_node(s, config):
 def plan_node(s, config):
     events = blocking(s.get("events_today", []), s["day"])  # all-day events are informative, not busy
     carried = [c.cites[0].removeprefix("jira:") for c in s.get("carried", [])]
-    res = plan_day(_llm(s, config), _tracer(config), s.get("issues", []), events, s["day"], carried)
+    done = set(s.get("done", []))  # tasks you marked as done in the UI are not planned again
+    issues = [i for i in s.get("issues", []) if i.key not in done]
+    res = plan_day(_llm(s, config), _tracer(config), issues, events, s["day"], carried)
     return {"plan": res.value, "source": res.source, "provenance": {"planner": res.source},
             "attempts": {"planner": res.attempts}, "warnings": _agent_warning("planificador", res)}
 

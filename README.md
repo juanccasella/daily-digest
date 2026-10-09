@@ -86,6 +86,31 @@ Opciones:
 
 El informe se guarda en `_local-only/digests/` y la traza en `_local-only/traces/`; nunca van a git.
 
+### Planner web (calendario + tareas)
+
+```bash
+daily-digest-web        # http://127.0.0.1:8765
+```
+
+- **Calendario del día:** reuniones y bloques planificados. Los eventos de todo el día aparecen arriba y no bloquean.
+- **Tareas:** Arrastrado, Plan de hoy, Backlog y Hechas.
+- **Detalle de cada tarea:** estado, por qué está en el plan, qué se movió en el período, a qué objetivo aporta, citas y link a Jira.
+- **Botones:** "Generar demo" (instantáneo), "Actualizar con mis datos" y "Actualizar con modelo".
+
+**"Marcar como hecha"** impacta en local:
+- la tarea pasa a *Hechas* en el informe;
+- se guarda en la memoria (`_local-only/digest.db`);
+- la próxima corrida no la planifica ni la arrastra.
+
+**No escribe en Jira** ([ADR-0003](docs/adr/0003-cuarentena-de-entrada-no-confiable.md)): el ticket lo movés vos desde el link.
+
+Seguridad del servidor local:
+- escucha solo en `127.0.0.1` y rechaza otros `Host` (protege contra DNS rebinding);
+- cada escritura exige un token por proceso (protege contra CSRF);
+- el texto siempre se pinta como texto, nunca como HTML (lo verifica un test).
+
+**Demo pública (Vercel):** `web/` es un sitio estático que, sin servidor, carga `web/demo.json`, con datos ficticios generados por `python scripts/export_demo.py`. Las interacciones quedan en el navegador. Para desplegar, importar el repo en Vercel; `vercel.json` ya apunta a `web/`. **Los datos reales nunca se publican.**
+
 ### Desde Claude Code (servidor MCP propio)
 
 ```bash
