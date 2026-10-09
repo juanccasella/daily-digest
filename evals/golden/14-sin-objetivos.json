@@ -1,0 +1,14 @@
+{
+  "id": "sin-objetivos",
+  "category": "bordes",
+  "description": "Sin objetivos: la sección lo dice y hay aviso.",
+  "goals_md": "",
+  "expect": {
+    "warnings_contain": [
+      "no hay objetivos"
+    ],
+    "digest_contains": [
+      "sin objetivos cargados"
+    ]
+  }
+}

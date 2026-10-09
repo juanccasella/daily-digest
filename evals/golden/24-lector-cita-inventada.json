@@ -1,0 +1,27 @@
+{
+  "id": "lector-cita-inventada",
+  "category": "critico",
+  "description": "El lector cita un mail que no existe: se rechaza.",
+  "llm": {
+    "reader": [
+      {
+        "claims": [
+          {
+            "text": "El cliente aprobó todo.",
+            "cites": [
+              "mail:deadbeef"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "attempts": {
+      "reader": 2
+    },
+    "digest_not_contains": [
+      "El cliente aprobó todo"
+    ]
+  }
+}

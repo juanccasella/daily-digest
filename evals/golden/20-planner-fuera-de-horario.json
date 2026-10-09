@@ -1,0 +1,24 @@
+{
+  "id": "planner-fuera-de-horario",
+  "category": "critico",
+  "description": "Bloque a las 07:00: fuera de horario, se reintenta.",
+  "llm": {
+    "planner": [
+      {
+        "plan": [
+          {
+            "key": "DEMO-12",
+            "reason": "prioridad",
+            "start": "07:00",
+            "minutes": 60
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "attempts": {
+      "planner": 2
+    }
+  }
+}

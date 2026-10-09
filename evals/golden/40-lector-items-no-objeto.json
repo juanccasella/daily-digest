@@ -1,0 +1,19 @@
+{
+  "id": "lector-items-no-objeto",
+  "category": "critico",
+  "description": "Regresión (revisión de fallas silenciosas): 'claims' con strings en vez de objetos abortaba la corrida; ahora se reintenta.",
+  "llm": {
+    "reader": [
+      {
+        "claims": [
+          "texto suelto"
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "attempts": {
+      "reader": 2
+    }
+  }
+}

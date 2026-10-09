@@ -1,0 +1,10 @@
+{
+  "id": "ventana-explicita",
+  "category": "regresion",
+  "description": "--desde/--hasta pisan la ventana por defecto.",
+  "desde": "2026-10-05",
+  "hasta": "2026-10-07",
+  "expect": {
+    "window_label": "05/10/2026 al 07/10/2026"
+  }
+}

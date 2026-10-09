@@ -1,0 +1,13 @@
+{
+  "id": "transicion-de-ticket-cerrado",
+  "category": "regresion",
+  "description": "Un ticket cerrado ayer (no está entre los abiertos) se puede citar en Avanzó.",
+  "expect": {
+    "cites_include": [
+      "jira:DEMO-19"
+    ],
+    "digest_contains": [
+      "In Review → Done"
+    ]
+  }
+}

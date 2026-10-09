@@ -1,0 +1,31 @@
+{
+  "id": "chat-bloqueado",
+  "category": "fuentes",
+  "description": "Chat.Read bloqueado (403): se usa el export, con aviso explícito.",
+  "data": {
+    "blocked": [
+      "chats"
+    ],
+    "chats_export": [
+      {
+        "id": "export-1",
+        "from": "Ana Ejemplo",
+        "chat": "Equipo Backend",
+        "time": "11:00",
+        "text": "Subí el fix del timeout a staging."
+      }
+    ]
+  },
+  "expect": {
+    "warnings_contain": [
+      "acceso bloqueado",
+      "adaptador alternativo"
+    ],
+    "provenance": {
+      "chats": "export"
+    },
+    "cites_include": [
+      "chat:62b0f236"
+    ]
+  }
+}

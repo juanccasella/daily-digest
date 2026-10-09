@@ -1,0 +1,9 @@
+{
+  "id": "ticket-vencido-primero",
+  "category": "regresion",
+  "description": "El ticket que vence hoy con prioridad Highest va primero.",
+  "use_llm": false,
+  "expect": {
+    "plan_first": "DEMO-12"
+  }
+}

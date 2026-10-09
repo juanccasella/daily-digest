@@ -1,0 +1,16 @@
+{
+  "id": "jira-caido",
+  "category": "fuentes",
+  "description": "Jira no responde: no hay plan, pero el informe es válido y avisa.",
+  "data": {
+    "failing": [
+      "jira"
+    ]
+  },
+  "expect": {
+    "warnings_contain": [
+      "jira"
+    ],
+    "plan_max": 0
+  }
+}

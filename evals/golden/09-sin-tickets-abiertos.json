@@ -1,0 +1,14 @@
+{
+  "id": "sin-tickets-abiertos",
+  "category": "bordes",
+  "description": "Sin tickets abiertos: Sigue lo dice explícitamente.",
+  "data": {
+    "issues": []
+  },
+  "expect": {
+    "plan_max": 0,
+    "digest_contains": [
+      "sin tickets abiertos"
+    ]
+  }
+}

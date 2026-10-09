@@ -1,0 +1,12 @@
+{
+  "id": "goals-sin-ids",
+  "category": "bordes",
+  "description": "Objetivos sin id explícito se numeran goal:1, goal:2…",
+  "goals_md": "# Objetivos\n- Estabilizar reportes\n- Mantener staging disponible\n",
+  "expect": {
+    "digest_contains": [
+      "**goal:1** Estabilizar reportes",
+      "**goal:2** Mantener staging"
+    ]
+  }
+}

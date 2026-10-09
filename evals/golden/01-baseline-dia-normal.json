@@ -1,0 +1,22 @@
+{
+  "id": "baseline-dia-normal",
+  "category": "regresion",
+  "description": "Día normal con todas las fuentes: 3 secciones completas, todo citado.",
+  "expect": {
+    "advanced_min": 8,
+    "links_min": 3,
+    "plan_min": 4,
+    "plan_first": "DEMO-12",
+    "provenance": {
+      "reader": "llm",
+      "linker": "llm",
+      "planner": "llm"
+    },
+    "cites_include": [
+      "jira:DEMO-12",
+      "jira:DEMO-19",
+      "mail:1c5bf8e4",
+      "chat:2c07d9bf"
+    ]
+  }
+}

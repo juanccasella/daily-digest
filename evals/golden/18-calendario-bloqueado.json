@@ -1,0 +1,15 @@
+{
+  "id": "calendario-bloqueado",
+  "category": "fuentes",
+  "description": "Calendario con 403: aviso y plan sin reuniones.",
+  "data": {
+    "blocked": [
+      "calendar"
+    ]
+  },
+  "expect": {
+    "warnings_contain": [
+      "calendario: acceso bloqueado"
+    ]
+  }
+}

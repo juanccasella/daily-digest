@@ -1,0 +1,15 @@
+{
+  "id": "sin-mails-ni-chats",
+  "category": "bordes",
+  "description": "Sin mails ni chats: el lector no se invoca y Avanzó sale de Jira y calendario.",
+  "data": {
+    "mails": [],
+    "chats": []
+  },
+  "expect": {
+    "provenance": {
+      "reader": "sin-datos"
+    },
+    "advanced_min": 5
+  }
+}

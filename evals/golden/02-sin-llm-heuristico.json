@@ -1,0 +1,14 @@
+{
+  "id": "sin-llm-heuristico",
+  "category": "regresion",
+  "description": "Sin modelo: los tres agentes usan su versión heurística y el informe es válido.",
+  "use_llm": false,
+  "expect": {
+    "provenance": {
+      "reader": "heuristic",
+      "linker": "heuristic",
+      "planner": "heuristic"
+    },
+    "plan_min": 4
+  }
+}

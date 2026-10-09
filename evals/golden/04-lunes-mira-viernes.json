@@ -1,0 +1,12 @@
+{
+  "id": "lunes-mira-viernes",
+  "category": "regresion",
+  "description": "Un lunes, el período 'ayer' es el viernes anterior.",
+  "day": "2026-10-12",
+  "expect": {
+    "window_label": "09/10/2026",
+    "digest_contains": [
+      "Período analizado: 09/10/2026"
+    ]
+  }
+}

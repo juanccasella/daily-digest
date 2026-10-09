@@ -1,0 +1,25 @@
+{
+  "id": "vinculador-goal-inexistente",
+  "category": "critico",
+  "description": "Vincula a goal:99, que no existe: se rechaza.",
+  "llm": {
+    "linker": [
+      {
+        "links": [
+          {
+            "goal": "goal:99",
+            "text": "Ayudó.",
+            "cites": [
+              "jira:DEMO-12"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "attempts": {
+      "linker": 2
+    }
+  }
+}

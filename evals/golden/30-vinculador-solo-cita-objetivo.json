@@ -1,0 +1,28 @@
+{
+  "id": "vinculador-solo-cita-objetivo",
+  "category": "critico",
+  "description": "Un vínculo sin evidencia (solo cita el objetivo) se rechaza.",
+  "llm": {
+    "linker": [
+      {
+        "links": [
+          {
+            "goal": "goal:1",
+            "text": "Ayudó mucho.",
+            "cites": [
+              "goal:1"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "attempts": {
+      "linker": 2
+    },
+    "digest_not_contains": [
+      "Ayudó mucho"
+    ]
+  }
+}

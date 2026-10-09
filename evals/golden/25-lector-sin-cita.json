@@ -1,0 +1,25 @@
+{
+  "id": "lector-sin-cita",
+  "category": "critico",
+  "description": "Afirmación sin cita: se rechaza.",
+  "llm": {
+    "reader": [
+      {
+        "claims": [
+          {
+            "text": "Hubo avances importantes.",
+            "cites": []
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "attempts": {
+      "reader": 2
+    },
+    "digest_not_contains": [
+      "Hubo avances importantes"
+    ]
+  }
+}

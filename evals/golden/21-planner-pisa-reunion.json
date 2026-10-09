@@ -1,0 +1,24 @@
+{
+  "id": "planner-pisa-reunion",
+  "category": "critico",
+  "description": "Bloque sobre la reunión con el cliente: se reintenta.",
+  "llm": {
+    "planner": [
+      {
+        "plan": [
+          {
+            "key": "DEMO-12",
+            "reason": "prioridad",
+            "start": "11:00",
+            "minutes": 60
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "attempts": {
+      "planner": 2
+    }
+  }
+}

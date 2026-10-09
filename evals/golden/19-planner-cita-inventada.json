@@ -1,0 +1,30 @@
+{
+  "id": "planner-cita-inventada",
+  "category": "critico",
+  "description": "El planificador inventa un ticket: se rechaza y corrige en el 2.º intento.",
+  "llm": {
+    "planner": [
+      {
+        "plan": [
+          {
+            "key": "FAKE-1",
+            "reason": "prioridad",
+            "start": "10:00",
+            "minutes": 60
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "provenance": {
+      "planner": "llm-after-retry"
+    },
+    "attempts": {
+      "planner": 2
+    },
+    "plan_excludes": [
+      "FAKE-1"
+    ]
+  }
+}

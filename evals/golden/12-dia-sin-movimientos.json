@@ -1,0 +1,17 @@
+{
+  "id": "dia-sin-movimientos",
+  "category": "bordes",
+  "description": "Nada se movió: Avanzó lo dice y no se inventan vínculos.",
+  "data": {
+    "changes": [],
+    "events_window": [],
+    "mails": [],
+    "chats": []
+  },
+  "expect": {
+    "digest_contains": [
+      "sin movimientos registrados"
+    ],
+    "links_max": 0
+  }
+}

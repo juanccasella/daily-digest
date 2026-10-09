@@ -1,0 +1,48 @@
+{
+  "id": "planner-no-converge",
+  "category": "critico",
+  "description": "Tres planes inválidos: respaldo heurístico avisado.",
+  "llm": {
+    "planner": [
+      {
+        "plan": [
+          {
+            "key": "FAKE-1",
+            "reason": "prioridad",
+            "start": "10:00",
+            "minutes": 60
+          }
+        ]
+      },
+      {
+        "plan": [
+          {
+            "key": "DEMO-12",
+            "reason": "prioridad",
+            "start": "07:00",
+            "minutes": 60
+          }
+        ]
+      },
+      {
+        "plan": [
+          {
+            "key": "DEMO-12",
+            "reason": "prioridad",
+            "start": "10:00",
+            "minutes": 600
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "provenance": {
+      "planner": "heuristic-fallback"
+    },
+    "warnings_contain": [
+      "planificador: el modelo no convergió"
+    ],
+    "plan_min": 4
+  }
+}

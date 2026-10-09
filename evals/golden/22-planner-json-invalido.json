@@ -1,0 +1,15 @@
+{
+  "id": "planner-json-invalido",
+  "category": "critico",
+  "description": "Respuesta sin JSON: cuenta como fallo y se reintenta.",
+  "llm": {
+    "planner": [
+      "Perdón, hoy no puedo armar el plan."
+    ]
+  },
+  "expect": {
+    "attempts": {
+      "planner": 2
+    }
+  }
+}

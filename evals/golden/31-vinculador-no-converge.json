@@ -1,0 +1,50 @@
+{
+  "id": "vinculador-no-converge",
+  "category": "critico",
+  "description": "Tres vínculos inválidos: respaldo heurístico avisado.",
+  "llm": {
+    "linker": [
+      {
+        "links": [
+          {
+            "goal": "goal:99",
+            "text": "a",
+            "cites": [
+              "jira:DEMO-12"
+            ]
+          }
+        ]
+      },
+      {
+        "links": [
+          {
+            "goal": "goal:99",
+            "text": "a",
+            "cites": [
+              "jira:DEMO-12"
+            ]
+          }
+        ]
+      },
+      {
+        "links": [
+          {
+            "goal": "goal:99",
+            "text": "a",
+            "cites": [
+              "jira:DEMO-12"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "provenance": {
+      "linker": "heuristic-fallback"
+    },
+    "warnings_contain": [
+      "vinculador de objetivos"
+    ]
+  }
+}

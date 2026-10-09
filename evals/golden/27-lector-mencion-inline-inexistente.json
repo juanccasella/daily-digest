@@ -1,0 +1,27 @@
+{
+  "id": "lector-mencion-inline-inexistente",
+  "category": "critico",
+  "description": "Una cita inventada dentro del texto también se detecta.",
+  "llm": {
+    "reader": [
+      {
+        "claims": [
+          {
+            "text": "Se cerró jira:NOPE-9 según el cliente.",
+            "cites": [
+              "mail:1c5bf8e4"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "attempts": {
+      "reader": 2
+    },
+    "digest_not_contains": [
+      "NOPE-9"
+    ]
+  }
+}

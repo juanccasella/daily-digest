@@ -1,0 +1,24 @@
+{
+  "id": "lector-cita-fuera-de-su-alcance",
+  "category": "critico",
+  "description": "El lector solo puede citar mails/chats, no tickets ni objetivos.",
+  "llm": {
+    "reader": [
+      {
+        "claims": [
+          {
+            "text": "Se cumplió el objetivo.",
+            "cites": [
+              "goal:1"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "attempts": {
+      "reader": 2
+    }
+  }
+}

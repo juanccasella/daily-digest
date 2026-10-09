@@ -1,0 +1,23 @@
+{
+  "id": "ticket-sin-prioridad",
+  "category": "bordes",
+  "description": "Un ticket sin prioridad se trata como Medium y no rompe nada.",
+  "data": {
+    "issues": [
+      {
+        "key": "DEMO-70",
+        "summary": "Ticket sin prioridad",
+        "status": "To Do",
+        "priority": null,
+        "due": null,
+        "updated": "2026-10-01T10:00:00"
+      }
+    ]
+  },
+  "expect": {
+    "plan_min": 1,
+    "cites_include": [
+      "jira:DEMO-70"
+    ]
+  }
+}

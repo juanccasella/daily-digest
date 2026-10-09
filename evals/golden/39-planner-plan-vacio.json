@@ -1,0 +1,18 @@
+{
+  "id": "planner-plan-vacio",
+  "category": "critico",
+  "description": "Hueco detectado en uso real (09/10): el crítico no tenía regla para planes vacíos. Con tickets abiertos y huecos libres de 60 min o más, un plan vacío se rechaza.",
+  "llm": {
+    "planner": [
+      {
+        "plan": []
+      }
+    ]
+  },
+  "expect": {
+    "attempts": {
+      "planner": 2
+    },
+    "plan_min": 1
+  }
+}

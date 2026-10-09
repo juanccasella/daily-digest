@@ -1,0 +1,24 @@
+{
+  "id": "lector-imagen-por-referencia",
+  "category": "seguridad",
+  "description": "Regresión (revisión de seguridad): imagen markdown por referencia (![a][r]).",
+  "llm": {
+    "reader": [
+      {
+        "claims": [
+          {
+            "text": "Ver ![estado][r1]",
+            "cites": [
+              "mail:1c5bf8e4"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "attempts": {
+      "reader": 2
+    }
+  }
+}

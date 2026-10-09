@@ -1,0 +1,15 @@
+{
+  "id": "mails-caidos",
+  "category": "fuentes",
+  "description": "La fuente de mails falla: el informe sale igual, con aviso.",
+  "data": {
+    "failing": [
+      "mails"
+    ]
+  },
+  "expect": {
+    "warnings_contain": [
+      "mails: no disponible"
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "mail-vacio",
+  "category": "bordes",
+  "description": "Un mail sin asunto ni cuerpo no genera afirmaciones.",
+  "data": {
+    "mails": [
+      {
+        "id": "AAMk-vacio",
+        "from": "Newsletter",
+        "subject": "",
+        "time": "07:00",
+        "preview": ""
+      }
+    ],
+    "chats": []
+  },
+  "expect": {
+    "advanced_max": 5
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "lector-enlace-markdown",
+  "category": "seguridad",
+  "description": "Un enlace markdown en una afirmación (canal de exfiltración) se rechaza.",
+  "llm": {
+    "reader": [
+      {
+        "claims": [
+          {
+            "text": "Ver detalle [acá](http://ejemplo.invalid/x)",
+            "cites": [
+              "mail:1c5bf8e4"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "attempts": {
+      "reader": 2
+    },
+    "digest_not_contains": [
+      "ejemplo.invalid/x"
+    ]
+  }
+}

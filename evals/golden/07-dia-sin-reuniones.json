@@ -1,0 +1,14 @@
+{
+  "id": "dia-sin-reuniones",
+  "category": "bordes",
+  "description": "Hoy sin reuniones: el plan usa la jornada completa.",
+  "data": {
+    "events": []
+  },
+  "expect": {
+    "digest_contains": [
+      "sin reuniones"
+    ],
+    "plan_min": 5
+  }
+}

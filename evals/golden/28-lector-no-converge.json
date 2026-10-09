@@ -1,0 +1,35 @@
+{
+  "id": "lector-no-converge",
+  "category": "critico",
+  "description": "Tres respuestas inválidas del lector: respaldo heurístico avisado.",
+  "llm": {
+    "reader": [
+      "sin json",
+      {
+        "claims": [
+          {
+            "text": "x",
+            "cites": []
+          }
+        ]
+      },
+      {
+        "claims": "no es lista"
+      }
+    ]
+  },
+  "expect": {
+    "provenance": {
+      "reader": "heuristic-fallback"
+    },
+    "warnings_contain": [
+      "lector de mails/chats"
+    ],
+    "never_sees": {
+      "linker": [
+        "Staging caído para pruebas",
+        "Re: timeout en reportes"
+      ]
+    }
+  }
+}
