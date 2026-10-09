@@ -1,6 +1,7 @@
 """Markdown rendering. Every statement shows its citations as `[id]`."""
 
 from .report import Report
+from .scheduling import DEFAULT_BLOCK
 from .security import sanitize
 
 LABELS = {"llm": "modelo", "llm-after-retry": "modelo (tras reintento)", "heuristic": "heurístico",
@@ -47,6 +48,8 @@ def to_markdown(r: Report) -> str:
         for p in sorted(r.plan, key=lambda p: p.start):
             summary = sanitize(by_key[p.key].summary, 80) if p.key in by_key else ""
             lines.append(f"| {p.start:%H:%M}-{p.end:%H:%M} | {p.key} {summary} | {_text(p.reason)[:200].replace('|', '/')} | `[{p.cite}]` |")
+    elif r.issues:
+        lines.append(f"- (sin huecos libres de {DEFAULT_BLOCK} min en la jornada: los tickets abiertos quedan en el backlog)")
     else:
         lines.append("- (sin tickets abiertos para planificar)")
     planned = {p.key for p in r.plan}

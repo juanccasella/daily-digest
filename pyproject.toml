@@ -30,4 +30,5 @@ markers = [
     "llm: calls the real model (needs ANTHROPIC_API_KEY or a logged-in `claude`)",
     "integration: calls real Jira / Microsoft 365 (requiere credenciales)",
 ]
-addopts = "-m 'not llm and not integration'"
+# Project-local temp dir: the shared %TEMP%\pytest-of-<user> symlink breaks on Windows when another run holds it.
+addopts = "-m 'not llm and not integration' --basetemp=.pytest_cache/tmp"

@@ -1,0 +1,15 @@
+{
+  "id": "dia-sin-huecos",
+  "category": "bordes",
+  "description": "Regresión de uso real (09/10): un bloque de todo el día no deja huecos. El plan vacío es válido, pero el informe tiene que decir que faltan huecos, no que faltan tickets.",
+  "data": {
+    "events": [
+      {"subject": "Evento de todo el día", "start": "09:00", "end": "18:00"}
+    ]
+  },
+  "expect": {
+    "plan_max": 0,
+    "digest_contains": ["sin huecos libres de 60 min"],
+    "digest_not_contains": ["sin tickets abiertos"]
+  }
+}
