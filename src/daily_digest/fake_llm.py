@@ -71,5 +71,5 @@ class FakeLLM:
                   for t in p["tickets"]]
         at = lambda hm: datetime.combine(day, datetime.strptime(hm, "%H:%M").time())  # noqa: E731
         events = [Event(e["subject"], at(e["start"]), at(e["end"])) for e in p["reuniones"]]
-        plan = heuristic_plan(issues, events, day)
+        plan = heuristic_plan(issues, events, day, carried=p.get("arrastrados"))
         return {"plan": [{"key": x.key, "reason": x.reason, "start": f"{x.start:%H:%M}", "minutes": x.minutes} for x in plan]}

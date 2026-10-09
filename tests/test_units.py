@@ -102,7 +102,10 @@ def test_chats_source_construction_error_degrades(monkeypatch):
     for k in ("JIRA_BASE_URL", "JIRA_EMAIL", "JIRA_API_TOKEN"):
         monkeypatch.delenv(k, raising=False)
     day = date(2026, 10, 9)
-    out = build().invoke(initial_state(day, resolve(day), offline=False, use_llm=False, m365="graph"))
+    from daily_digest.memory import StaticMemory
+
+    out = build().invoke(initial_state(day, resolve(day), offline=False, use_llm=False, m365="graph"),
+                         config={"configurable": {"memory": StaticMemory([])}})  # never touch the real db
     assert out["errors"] == [] and any(w.startswith("chats:") for w in out["report"].warnings)
 
 

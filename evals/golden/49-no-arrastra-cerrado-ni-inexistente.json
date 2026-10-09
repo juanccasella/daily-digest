@@ -1,0 +1,9 @@
+{
+  "id": "no-arrastra-cerrado-ni-inexistente",
+  "category": "memoria",
+  "description": "Memoria entre días: un ticket que ya no está abierto (DEMO-19, cerrado) o que no existe (GONE-1) no se arrastra.",
+  "data": {"previous_plan": [{"key": "DEMO-19"}, {"key": "GONE-1"}]},
+  "expect": {
+    "digest_not_contains": ["Arrastrado (planificado antes", "GONE-1"]
+  }
+}

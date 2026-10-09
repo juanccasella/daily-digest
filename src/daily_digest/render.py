@@ -74,6 +74,9 @@ def to_markdown(r: Report) -> str:
 
     lines.append("**Reuniones:** " + (", ".join(meeting(e) for e in meetings) or "sin reuniones"))
     lines.append("")
+    if r.carried:
+        lines += ["**Arrastrado (planificado antes y sin movimiento):**"]
+        lines += [f"- {_text(c.text)} {_cites(c.cites)}" for c in r.carried] + [""]
     by_key = {i.key: i for i in r.issues}
     if r.plan:
         lines += ["| Hora | Ticket | Por qué | Cita |", "|---|---|---|---|"]

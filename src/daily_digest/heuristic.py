@@ -8,14 +8,16 @@ from .scheduling import DEFAULT_BLOCK, busy_from, free_gaps
 BLOCK = DEFAULT_BLOCK
 
 
-def _score(i: Issue, day: date) -> tuple:
+def _score(i: Issue, day: date, carried: set[str]) -> tuple:
     overdue = 0 if i.due and i.due <= day else 1
-    return (overdue, PRIORITY_RANK.get(i.priority, 2), i.due or date.max, i.updated)
+    return (overdue, 0 if i.key in carried else 1, PRIORITY_RANK.get(i.priority, 2), i.due or date.max, i.updated)
 
 
-def heuristic_plan(issues: list[Issue], events: list[Event], day: date, limit: int = 5) -> list[PlanItem]:
+def heuristic_plan(issues: list[Issue], events: list[Event], day: date, limit: int = 5,
+                   carried: list[str] | None = None) -> list[PlanItem]:
     plan: list[PlanItem] = []
-    for i in sorted(issues, key=lambda x: _score(x, day)):
+    carried_set = set(carried or [])
+    for i in sorted(issues, key=lambda x: _score(x, day, carried_set)):
         if len(plan) == limit:
             break
         gaps = free_gaps(day, busy_from(events, plan))
@@ -23,5 +25,7 @@ def heuristic_plan(issues: list[Issue], events: list[Event], day: date, limit: i
         if not slot:
             break
         why = f"prioridad {i.priority}" + (f", vence {i.due:%d/%m}" if i.due else "") + f", estado {i.status}"
+        if i.key in carried_set:
+            why = "arrastrado (planificado antes, sin movimiento), " + why
         plan.append(PlanItem(i.key, why, slot[0], BLOCK))
     return plan

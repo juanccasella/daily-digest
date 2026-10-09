@@ -12,6 +12,7 @@ from pathlib import Path
 from . import goals as goals_mod
 from .fake_llm import FakeLLM
 from .graph import build, initial_state
+from .memory import StaticMemory
 from .sources import StaticSources, fixture_data
 from .trace import Tracer
 from .window import resolve
@@ -72,7 +73,8 @@ def run_case(case: dict, real_llm=None) -> CaseResult:
     out = build().invoke(
         initial_state(day, window, offline=True, use_llm=use_llm),
         config={"configurable": {"sources": StaticSources(data, day, window), "llm": llm,
-                                 "tracer": Tracer(None), "goals": goals}},
+                                 "tracer": Tracer(None), "goals": goals,
+                                 "memory": StaticMemory(data.get("previous_plan", []))}},
     )
     checks = exp if real_llm is None else {k: v for k, v in exp.items() if k in REAL_MODE_CHECKS}
     return CaseResult(case["id"], case.get("category", ""), *_check(checks, out, llm))

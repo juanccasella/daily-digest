@@ -23,6 +23,7 @@ from .agents import link_goals, plan_day, read_untrusted
 from .llm import make_llm
 from .models import Claim, Event, Goal, GoalLink, Issue, JiraChange, Message, PlanItem
 from .report import Report, advanced_from_code, finalize
+from .memory import SqliteMemory, StaticMemory, carried_over
 from .scheduling import blocking
 from .security import looks_like_injection, sanitize
 from .sources import MissingConfig, SourceBlocked, StaticSources, fixture_data
@@ -49,6 +50,8 @@ class State(TypedDict, total=False):
     goals: list[Goal]
     goals_source: str
     owner: list[str]
+    planned: list  # (date, key) planned in the window, from memory
+    carried: list[Claim]
     advanced: list[Claim]
     reader_claims: list[Claim]
     links: list[GoalLink]
@@ -81,6 +84,17 @@ def _sources(s: State, config):
     from .sources import RealSources
 
     return RealSources(s.get("m365", "auto"), _tracer(config))
+
+
+def _memory(s: State, config):
+    mem = _cfg(config).get("memory")
+    if mem is not None:
+        return mem
+    if s.get("offline"):  # demos never read or write the real database
+        from .sources import _fixture
+
+        return StaticMemory(_fixture("previous_plan.json"))
+    return SqliteMemory()
 
 
 def _llm(s: State, config):
@@ -171,6 +185,12 @@ def fetch_chats(s, config):
         return {"chats": [], "warnings": [_degraded("chats", e)]}
 
 
+@_node("load_memory")
+def load_memory(s, config):
+    planned, warn = _safe("memoria", lambda: _memory(s, config).planned_in(_window(s)), [])
+    return {"planned": planned, "warnings": [warn] if warn else []}
+
+
 @_node("whoami")
 def whoami(s, config):
     """Who owns the mailbox, so agents write in second person ("Pediste…") instead of about the user."""
@@ -208,7 +228,9 @@ def facts(s, config):
     for e in s.get("events_today", []) + s.get("events_window", []):
         if looks_like_injection(e.subject):
             warns.append(f"seguridad: posible inyección de prompt en la reunión {e.cite}. Se trató como dato.")
-    return {"advanced": advanced_from_code(s.get("changes", []), s.get("events_window", [])), "warnings": warns}
+    return {"advanced": advanced_from_code(s.get("changes", []), s.get("events_window", [])),
+            "carried": carried_over(s.get("planned", []), s.get("issues", []), s.get("changes", [])),
+            "warnings": warns}
 
 
 def _agent_warning(name: str, res) -> list[str]:
@@ -243,7 +265,8 @@ def link_node(s, config):
 @_node("plan")
 def plan_node(s, config):
     events = blocking(s.get("events_today", []), s["day"])  # all-day events are informative, not busy
-    res = plan_day(_llm(s, config), _tracer(config), s.get("issues", []), events, s["day"])
+    carried = [c.cites[0].removeprefix("jira:") for c in s.get("carried", [])]
+    res = plan_day(_llm(s, config), _tracer(config), s.get("issues", []), events, s["day"], carried)
     return {"plan": res.value, "source": res.source, "provenance": {"planner": res.source},
             "attempts": {"planner": res.attempts}, "warnings": _agent_warning("planificador", res)}
 
@@ -260,7 +283,7 @@ def build():
     g = StateGraph(State)
     fetchers = [("fetch_jira", fetch_jira), ("fetch_jira_changes", fetch_jira_changes), ("fetch_calendar", fetch_calendar),
                 ("fetch_mail", fetch_mail), ("fetch_chats", fetch_chats), ("load_goals", load_goals),
-                ("whoami", whoami)]
+                ("whoami", whoami), ("load_memory", load_memory)]
     for name, fn in fetchers + [("facts", facts), ("read_untrusted", read_node), ("link_goals", link_node),
                                 ("plan", plan_node), ("render", render)]:
         g.add_node(name, fn)

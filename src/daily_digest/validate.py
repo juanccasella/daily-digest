@@ -99,4 +99,5 @@ def validate_report(report) -> list[str]:
     errors = validate_claims(report.advanced, known)
     errors += validate_links(report.goal_links, known - report.goal_ids, report.goal_ids)
     errors += validate_claims([Claim(p.reason, (p.cite,)) for p in report.plan], known)
+    errors += validate_claims(getattr(report, "carried", []), known)
     return errors

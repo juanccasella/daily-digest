@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from . import trace
 from .graph import build, initial_state
 from .llm import make_llm
+from .memory import SqliteMemory
 from .window import resolve
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -35,14 +36,19 @@ def main() -> int:
         warnings.append("modelo no disponible (sin ANTHROPIC_API_KEY ni `claude`): todo el informe es heurístico.")
 
     tracer = trace.for_run(ROOT, a.date)
+    config = {"tracer": tracer, "llm": llm}
+    if not a.offline:
+        config["memory"] = SqliteMemory()
     try:
         with tracer.span("invoke_workflow daily-digest", **{"digest.offline": a.offline, "digest.window": window.label(),
                                                             "digest.llm": type(llm).__name__ if llm else "none"}):
             out = build().invoke(initial_state(a.date, window, a.offline, llm is not None, a.fuentes_m365, warnings),
-                                 config={"configurable": {"tracer": tracer, "llm": llm}})
+                                 config={"configurable": config})
     finally:  # the trace is most useful exactly when the run blows up
         path = tracer.flush()
     print(out["digest"])
+    if "memory" in config and not out["errors"]:  # remember today's plan for tomorrow's carry-over
+        config["memory"].save_plan(a.date, out["report"].plan, out.get("source", ""))
 
     dest = ROOT / "_local-only" / "digests"
     dest.mkdir(parents=True, exist_ok=True)

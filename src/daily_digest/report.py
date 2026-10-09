@@ -26,6 +26,7 @@ class Report:
     attempts: dict
     known_ids: set[str]
     goals_source: str = ""
+    carried: list[Claim] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
 
     @property
@@ -79,6 +80,7 @@ def finalize(s: dict, window: Window) -> Report:
     kept_links = [ln for ln in s.get("links", []) if keep(validate_links([ln], known - goal_ids, goal_ids))]
     plan = s.get("plan", [])
     kept_plan = [p for p in plan if keep(validate_claims([Claim(p.reason, (p.cite,))], known))]
+    kept_carried = [c for c in s.get("carried", []) if keep(validate_claims([c], known))]
     dropped = (len(advanced) - len(kept_adv)) + (len(s.get("links", [])) - len(kept_links)) + (len(plan) - len(kept_plan))
     if dropped:
         warnings.append(f"validador final: se descartaron {dropped} afirmación(es) inválidas. Motivos: "
@@ -88,7 +90,7 @@ def finalize(s: dict, window: Window) -> Report:
         day=s["day"], window=window, offline=bool(s.get("offline")), advanced=kept_adv, goal_links=kept_links,
         goals=goals, plan=kept_plan, issues=s.get("issues", []), events_today=s.get("events_today", []),
         warnings=warnings, provenance=dict(s.get("provenance", {})), attempts=dict(s.get("attempts", {})),
-        known_ids=known, goals_source=s.get("goals_source", ""),
+        known_ids=known, goals_source=s.get("goals_source", ""), carried=kept_carried,
     )
     from .validate import validate_report
 

@@ -1,0 +1,12 @@
+{
+  "id": "arrastra-pendiente",
+  "category": "memoria",
+  "description": "Memoria entre días: DEMO-08 estaba planificado ayer y no se movió, así que se arrastra y va primero; DEMO-12 sí se movió y no se arrastra.",
+  "use_llm": false,
+  "data": {"previous_plan": [{"key": "DEMO-08"}, {"key": "DEMO-12"}]},
+  "expect": {
+    "digest_contains": ["**Arrastrado (planificado antes y sin movimiento):**", "DEMO-08 «Documentar flujo de despliegue»: lo planificaste para el 08/10"],
+    "digest_not_contains": ["DEMO-12 «Corregir timeout en el endpoint de reportes»: lo planificaste"],
+    "cites_include": ["jira:DEMO-08"]
+  }
+}

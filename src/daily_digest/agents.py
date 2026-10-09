@@ -220,12 +220,14 @@ Devolvé SOLO JSON: {{"plan":[{{"key":"ABC-1","reason":"...","start":"HH:MM","mi
 Reglas: usá solo keys que existan en la entrada; máximo 5 bloques; entre {WORK_START:%H:%M} y {WORK_END:%H:%M};
 sin pisar reuniones ni otros bloques; cada bloque de 15 a 180 minutos; "reason" cita evidencia concreta
 (prioridad, vencimiento, estado, antigüedad), no inventa datos y no lleva URLs. Priorizá vencidos y de mayor
-prioridad, y rescatá tickets que llevan mucho sin moverse."""
+prioridad, y rescatá tickets que llevan mucho sin moverse. Los tickets de "arrastrados" ya estaban planificados
+y no se movieron: dales prioridad y mencionalo en "reason"."""
 
 
-def planner_payload(issues: list[Issue], events: list[Event], day: date) -> dict:
+def planner_payload(issues: list[Issue], events: list[Event], day: date, carried: list[str] | None = None) -> dict:
     return {
         "hoy": day.isoformat(),
+        "arrastrados": list(carried or []),
         "tickets": [
             {"key": i.key, "summary": sanitize(i.summary, 160), "status": i.status, "priority": i.priority,
              "due": i.due.isoformat() if i.due else None, "updated": i.updated.date().isoformat()}
@@ -247,10 +249,12 @@ def _plan(data: dict, day: date) -> list[PlanItem]:
     ]
 
 
-def plan_day(llm: LLM | None, tracer: Tracer, issues: list[Issue], events: list[Event], day: date) -> AgentResult:
+def plan_day(llm: LLM | None, tracer: Tracer, issues: list[Issue], events: list[Event], day: date,
+             carried: list[str] | None = None) -> AgentResult:
     return run_agent(
-        "planner", llm, tracer, PLANNER_SYSTEM, json.dumps(planner_payload(issues, events, day), ensure_ascii=False),
+        "planner", llm, tracer, PLANNER_SYSTEM,
+        json.dumps(planner_payload(issues, events, day, carried), ensure_ascii=False),
         parse=lambda t: _plan(extract_json(t), day),
         check=lambda v: validate(v, issues, events, day),
-        fallback=lambda: heuristic_plan(issues, events, day),
+        fallback=lambda: heuristic_plan(issues, events, day, carried=carried),
     )
