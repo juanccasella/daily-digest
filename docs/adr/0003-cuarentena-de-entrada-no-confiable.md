@@ -1,5 +1,5 @@
 # ADR-0003: Mails y chats en cuarentena: lector aislado sin tools y sin canal de salida
-**Fecha:** 2026-10-09 · **Estado:** propuesta · **Quiénes:** Juan Cruz Casella (con Claude Code)
+**Fecha:** 2026-10-09 · **Estado:** aceptada · **Quiénes:** Juan Cruz Casella (con Claude Code)
 
 ## Contexto
 El digest cumple dos de las tres patas de la "trifecta letal" (Willison): accede a datos privados (Jira, mails, objetivos) y lee contenido no confiable (mails y chats de terceros). La prompt injection no tiene parche (OWASP LLM01): hay que diseñar asumiendo que va a ocurrir. La tercera pata, un canal de salida, es la que hay que eliminar.

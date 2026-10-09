@@ -1,5 +1,5 @@
 # ADR-0002: Traer datos y criticar es código; el LLM solo donde hay lenguaje
-**Fecha:** 2026-10-09 · **Estado:** propuesta · **Quiénes:** Juan Cruz Casella (con Claude Code)
+**Fecha:** 2026-10-09 · **Estado:** aceptada · **Quiénes:** Juan Cruz Casella (con Claude Code)
 
 ## Contexto
 El error más común en sistemas multiagente es convertir en agente lo que es una consulta o una regla. Cada salto LLM suma costo, latencia y riesgo de alucinación. El desafío exige además que el informe se apoye en datos reales y verificables.

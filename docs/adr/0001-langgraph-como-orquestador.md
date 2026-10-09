@@ -1,5 +1,5 @@
 # ADR-0001: Usamos LangGraph como orquestador
-**Fecha:** 2026-10-09 · **Estado:** propuesta · **Quiénes:** Juan Cruz Casella (con Claude Code)
+**Fecha:** 2026-10-09 · **Estado:** aceptada · **Quiénes:** Juan Cruz Casella (con Claude Code)
 
 ## Contexto
 El digest junta seis fuentes (Jira abiertos, cambios de Jira, calendario, mails, chats, objetivos) y tres agentes LLM con un crítico en código. Necesitamos lecturas en paralelo, que una fuente caída no tumbe la corrida, un ciclo propuesta → crítica → feedback explícito y una traza por nodo.

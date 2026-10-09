@@ -1,5 +1,5 @@
 # ADR-0004: Token de Graph de corta vida, con plan B por el conector M365
-**Fecha:** 2026-10-09 · **Estado:** propuesta · **Quiénes:** Juan Cruz Casella (con Claude Code)
+**Fecha:** 2026-10-09 · **Estado:** aceptada · **Quiénes:** Juan Cruz Casella (con Claude Code)
 
 ## Contexto
 El desafío pide mails, calendario y chats reales "vía API". La vía directa es Microsoft Graph con `Mail.Read`, `Calendars.Read` y `Chat.Read`. Registrar una app propia en Entra (con refresh token) requiere permisos de administrador. El 09/10 verificamos que el tenant corporativo exige **aprobación de administrador incluso para Graph Explorer**, así que hoy no hay token. En cambio, el conector Microsoft 365 de Claude ya está autorizado para el usuario, con esos mismos permisos concedidos (solo lectura).
