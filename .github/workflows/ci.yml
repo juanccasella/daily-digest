@@ -1,0 +1,19 @@
+name: CI daily-digest
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  harness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias
+        run: pip install -e ".[dev]"
+      - name: Validador del harness (estructura, secretos, tests, evals offline)
+        run: python scripts/validar.py
