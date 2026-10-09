@@ -13,9 +13,11 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+mcp = ["mcp>=1.2"]
 
 [project.scripts]
 daily-digest = "daily_digest.cli:main"
+daily-digest-mcp = "daily_digest.mcp_server:main"
 
 [build-system]
 requires = ["setuptools>=68"]

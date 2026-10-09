@@ -22,6 +22,7 @@ Stack: Python 3.12 · LangGraph · Claude (API o `claude -p`) · httpx · pytest
 - Demo sin credenciales: `daily-digest --offline --no-llm`
 - Tests y evals offline: `pytest` · `python scripts/run_evals.py` (`--real --k 3` con el modelo real)
 - Integración (requiere credenciales): `pytest -m integration`
+- Servidor MCP local: `daily-digest-mcp` (stdio; ver README y ADR-0005)
 - Validador del harness (lo mismo que el hook y CI): `python scripts/validar.py`
 
 ## Al terminar una tarea

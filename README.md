@@ -86,6 +86,22 @@ Opciones:
 
 El informe se guarda en `_local-only/digests/` y la traza en `_local-only/traces/`; nunca van a git.
 
+### Desde Claude Code (servidor MCP propio)
+
+```bash
+pip install -e ".[mcp]"
+claude mcp add daily-digest -- <ruta-al-repo>/.venv/Scripts/python.exe -m daily_digest.mcp_server
+```
+
+Tools:
+- `list_digests` y `get_digest`: leen los digests guardados.
+- `run_digest`: por defecto corre la demo offline; para leer tus fuentes hay que pedir `real=True`.
+
+Las respuestas se marcan como datos, no instrucciones ([ADR-0005](docs/adr/0005-mcp-propio-para-el-digest.md)).
+
+### Memoria entre días
+Cada corrida real guarda el plan del día en `_local-only/digest.db` (SQLite: solo ticket, horario y motivo). Al día siguiente, lo planificado que sigue abierto y no tuvo movimiento en Jira aparece como **Arrastrado** y el planificador lo prioriza.
+
 Cómo se lee el informe:
 - Te habla a vos ("Pediste…", "Te escribió…"). El dueño de la casilla sale de `DIGEST_OWNER` o de Jira.
 - "Avanzó" se agrupa por objetivo usando los vínculos validados.
@@ -93,17 +109,18 @@ Cómo se lee el informe:
 
 ## Evals
 
-Golden dataset en [`evals/golden/`](evals/golden/): **42 casos**, grader 100 % código y LLM simulado determinístico que puede programarse para fallar o para obedecer una inyección.
+Golden dataset en [`evals/golden/`](evals/golden/): **49 casos**, grader 100 % código y LLM simulado determinístico que puede programarse para fallar o para obedecer una inyección.
 
 | Categoría | Casos | Qué cubre |
 |---|---|---|
-| Regresión | 6 | día normal, sin LLM, vencido primero, lunes → viernes, ventana explícita, ticket cerrado citable |
-| Bordes | 8 | sin reuniones, sin prioridad, sin tickets, sin mails/chats, mail vacío, día sin movimientos, objetivos sin id o vacíos |
+| Regresión | 9 | día normal, sin LLM, vencido primero, lunes → viernes, ventana explícita, ticket cerrado citable, segunda persona (modelo y heurístico), "Avanzó" agrupado por objetivo |
+| Bordes | 10 | sin reuniones, sin prioridad, sin tickets, sin mails/chats, mail vacío, día sin movimientos, objetivos sin id o vacíos, día sin huecos, evento de todo el día |
+| Memoria | 2 | arrastra lo planificado sin movimiento; no arrastra lo cerrado ni lo inexistente |
 | Fuentes degradadas | 4 | chats con 403 → export, mails caídos, Jira caído, calendario bloqueado |
 | Crítico | 15 | por agente: cita inventada, sin cita, fuera de alcance, mención inline falsa, horario, reunión, JSON inválido, ítems que no son objetos, plan vacío, objetivo inexistente, vínculo sin evidencia, no converge |
 | Seguridad | 9 | inyección detectada, modelo obediente, cierre de delimitador, cuarentena (vinculador/planificador no ven crudo, tampoco tras el respaldo), inyección en chat y en ticket, enlace markdown, `<img>` y `![a][r]` |
 
-Resultado (09/10/2026): **pass@1 = 100 % (42/42) offline** y 104 tests en verde. Prueba de mutación: romper cada defensa (aceptar URLs, no escapar delimitadores, filtrar texto crudo al vinculador, no verificar citas) pone al menos un caso en rojo.
+Resultado (09/10/2026): **pass@1 = 100 % (49/49) offline** y 120 tests en verde. Prueba de mutación: romper cada defensa (aceptar URLs, no escapar delimitadores, filtrar texto crudo al vinculador, no verificar citas) pone al menos un caso en rojo.
 
 **Corrida real de punta a punta** (Jira REST + conector M365 + `claude -p`): validador final con **0 errores**, los tres agentes convergieron en el 1.er intento, ~USD 0,74 y ~1,5 min. El plan salió vacío y era correcto: ese día un bloque de 09 a 18 h no dejaba huecos. Igual mostró que el crítico no tenía regla para planes vacíos, y ahora la tiene.
 
@@ -124,4 +141,4 @@ Resultado (09/10/2026): **pass@1 = 100 % (42/42) offline** y 104 tests en verde.
 - **Datos de ejemplo:** todo informe de ejemplo de este repo sale de `fixtures/` ficticios y lo dice en el encabezado.
 
 ## Documentación
-[`docs/specs/reporte-diario.md`](docs/specs/reporte-diario.md) (spec y plan) · [`docs/adr/`](docs/adr/) (decisiones) · [`docs/harness.md`](docs/harness.md) (validación) · [`docs/plan.md`](docs/plan.md) (roadmap: memoria entre días, MCP propio, entrega).
+[`docs/specs/reporte-diario.md`](docs/specs/reporte-diario.md) (spec y plan) · [`docs/adr/`](docs/adr/) (decisiones) · [`docs/harness.md`](docs/harness.md) (validación) · [`docs/plan.md`](docs/plan.md) (roadmap: skill de Claude Code, entrega).

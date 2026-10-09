@@ -1,5 +1,6 @@
 import argparse
 import sys
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
@@ -12,6 +13,51 @@ from .memory import SqliteMemory
 from .window import resolve
 
 ROOT = Path(__file__).resolve().parents[2]
+DIGESTS = ROOT / "_local-only" / "digests"
+
+
+@dataclass
+class RunResult:
+    out: dict
+    digest_path: Path
+    trace_path: Path
+    totals: dict
+
+    @property
+    def exit_code(self) -> int:
+        """For schedulers: 1 = invalid report, 3 = valid but degraded (warnings), 0 = clean."""
+        if self.out["errors"]:
+            return 1
+        return 3 if self.out["report"].warnings and not self.out["report"].offline else 0
+
+
+def run(day: date, since: date | None = None, until: date | None = None, offline: bool = False,
+        no_llm: bool = False, m365: str = "auto", llm_backend: str | None = None) -> RunResult:
+    """One digest run (shared by the CLI and the MCP server)."""
+    window = resolve(day, since, until)
+    llm = None if no_llm else make_llm(llm_backend)
+    warnings = []
+    if not no_llm and llm is None:
+        warnings.append("modelo no disponible (sin ANTHROPIC_API_KEY ni `claude`): todo el informe es heurístico.")
+
+    tracer = trace.for_run(ROOT, day)
+    config = {"tracer": tracer, "llm": llm}
+    if not offline:
+        config["memory"] = SqliteMemory()
+    try:
+        with tracer.span("invoke_workflow daily-digest", **{"digest.offline": offline, "digest.window": window.label(),
+                                                            "digest.llm": type(llm).__name__ if llm else "none"}):
+            out = build().invoke(initial_state(day, window, offline, llm is not None, m365, warnings),
+                                 config={"configurable": config})
+    finally:  # the trace is most useful exactly when the run blows up
+        trace_path = tracer.flush()
+    if "memory" in config and not out["errors"]:  # remember today's plan for tomorrow's carry-over
+        config["memory"].save_plan(day, out["report"].plan, out.get("source", ""))
+
+    DIGESTS.mkdir(parents=True, exist_ok=True)
+    digest_path = DIGESTS / f"{day}{'-demo' if offline else ''}.md"  # a demo never overwrites a real digest
+    digest_path.write_text(out["digest"], encoding="utf-8")
+    return RunResult(out, digest_path, trace_path, tracer.totals())
 
 
 def main() -> int:
@@ -29,39 +75,14 @@ def main() -> int:
                     help="modelo vía API (ANTHROPIC_API_KEY) o vía `claude -p` (default: DIGEST_LLM_BACKEND o auto)")
     a = ap.parse_args()
 
-    window = resolve(a.date, a.desde, a.hasta)
-    llm = None if a.no_llm else make_llm(a.llm)
-    warnings = []
-    if not a.no_llm and llm is None:
-        warnings.append("modelo no disponible (sin ANTHROPIC_API_KEY ni `claude`): todo el informe es heurístico.")
-
-    tracer = trace.for_run(ROOT, a.date)
-    config = {"tracer": tracer, "llm": llm}
-    if not a.offline:
-        config["memory"] = SqliteMemory()
-    try:
-        with tracer.span("invoke_workflow daily-digest", **{"digest.offline": a.offline, "digest.window": window.label(),
-                                                            "digest.llm": type(llm).__name__ if llm else "none"}):
-            out = build().invoke(initial_state(a.date, window, a.offline, llm is not None, a.fuentes_m365, warnings),
-                                 config={"configurable": config})
-    finally:  # the trace is most useful exactly when the run blows up
-        path = tracer.flush()
-    print(out["digest"])
-    if "memory" in config and not out["errors"]:  # remember today's plan for tomorrow's carry-over
-        config["memory"].save_plan(a.date, out["report"].plan, out.get("source", ""))
-
-    dest = ROOT / "_local-only" / "digests"
-    dest.mkdir(parents=True, exist_ok=True)
-    (dest / f"{a.date}.md").write_text(out["digest"], encoding="utf-8")
-    t = tracer.totals()
+    r = run(a.date, a.desde, a.hasta, a.offline, a.no_llm, a.fuentes_m365, a.llm)
+    print(r.out["digest"])
+    t = r.totals
     # `claude -p` reports the API-equivalent cost; with a Claude subscription it is not billed (it uses plan quota).
     cost = f"{t['cost_usd']} USD equivalente API" if t["cost_usd"] is not None else "n/d"
-    print(f"\n(traza: {path.relative_to(ROOT)} · llamadas al modelo: {t['model_calls']} · tokens in/out: "
+    print(f"\n(traza: {r.trace_path.relative_to(ROOT)} · llamadas al modelo: {t['model_calls']} · tokens in/out: "
           f"{t['input_tokens']}/{t['output_tokens']} · costo: {cost})", file=sys.stderr)
-    # Exit code for schedulers: 1 = invalid report, 3 = valid but degraded (warnings), 0 = clean.
-    if out["errors"]:
-        return 1
-    return 3 if out["report"].warnings and not a.offline else 0
+    return r.exit_code
 
 
 if __name__ == "__main__":
